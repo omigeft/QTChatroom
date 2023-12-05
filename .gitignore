@@ -72,6 +72,9 @@ Thumbs.db
 *.dll
 *.exe
 
+# ignore build directory
+build*
+
 =======
 # C++ objects and libs
 *.slo
