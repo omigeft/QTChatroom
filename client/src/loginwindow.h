@@ -2,6 +2,9 @@
 #define LOGINWINDOW_H
 
 #include <QWidget>
+#include <QMessageBox>
+#include <QtNetwork>
+#include "publicdata.h"
 
 namespace Ui {
 class LoginWindow;
@@ -24,6 +27,7 @@ private slots:
 
 private:
     Ui::LoginWindow *ui;
+    PublicData *pd;
 };
 
 #endif // LOGINWINDOW_H

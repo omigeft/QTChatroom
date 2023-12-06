@@ -2,6 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QMessageBox>
+#include <QtNetwork>
+#include "publicdata.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -22,5 +25,6 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    PublicData *pd;
 };
 #endif // MAINWINDOW_H
