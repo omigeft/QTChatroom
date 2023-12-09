@@ -59,10 +59,18 @@
       </widget>
      </item>
      <item row="0" column="2">
-      <widget class="QLineEdit" name="IPInput"/>
+      <widget class="QLineEdit" name="IPInput">
+       <property name="text">
+        <string>127.0.0.1</string>
+       </property>
+      </widget>
      </item>
      <item row="1" column="2">
-      <widget class="QLineEdit" name="PortInput"/>
+      <widget class="QLineEdit" name="PortInput">
+       <property name="text">
+        <string>12345</string>
+       </property>
+      </widget>
      </item>
      <item row="2" column="2">
       <widget class="QLineEdit" name="AdminInput"/>
@@ -124,7 +132,7 @@
      <item>
       <widget class="QPushButton" name="LoginButton">
        <property name="text">
-        <string>登录</string>
+        <string>创建</string>
        </property>
       </widget>
      </item>

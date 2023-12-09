@@ -9,8 +9,8 @@ LoginWindow::LoginWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // 获取公共数据实例
-    pd = &PublicData::getInstance();
+    // 获取核心实例
+    core = &ClientCore::getInstance();
 }
 
 LoginWindow::~LoginWindow()
@@ -25,21 +25,8 @@ void LoginWindow::on_CloseButton_clicked()
 
 void LoginWindow::on_RegisterButton_clicked()
 {
-    // 发送注册请求到服务端
-    QString message = "我要注册";
-    pd->socket.write(message.toUtf8());
+    core->registerRequest(ui->NameInput->text(), ui->PassWordInput->text());
 
-    // 等待数据接收
-    if(pd->socket.waitForReadyRead(3000))
-    {
-        // 读取服务端的响应
-        QString response = QString::fromUtf8(pd->socket.readAll());
-        qDebug() << "收到服务端消息：" << response;
-    }
-    else
-    {
-        qDebug() << "未能接收到服务端响应";
-    }
 
     /*
     bool isRegistered;//判断是否注册
@@ -64,13 +51,13 @@ void LoginWindow::on_LoginButton_clicked()
 {
     // 发送登录请求到服务端
     QString message = "我要登录";
-    pd->socket.write(message.toUtf8());
+    core->socket.write(message.toUtf8());
 
     // 等待数据接收
-    if(pd->socket.waitForReadyRead(3000))
+    if(core->socket.waitForReadyRead(3000))
     {
         // 读取服务端的响应
-        QString response = QString::fromUtf8(pd->socket.readAll());
+        QString response = QString::fromUtf8(core->socket.readAll());
         qDebug() << "收到服务端消息：" << response;
     }
     else

@@ -2,6 +2,7 @@
 #define ADMINMANAGEMENT_H
 
 #include <QWidget>
+#include "servercore.h"
 
 namespace Ui {
 class AdminManagement;
@@ -32,6 +33,7 @@ private slots:
 
 private:
     Ui::AdminManagement *ui;
+    ServerCore *core;
     void insertUserIitem(int row,int column,QString content);
     void insertChatIitem(int row,int column,QString content);
 };

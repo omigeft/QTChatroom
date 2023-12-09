@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QtNetwork>
-#include "publicdata.h"
+#include "clientcore.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -25,6 +25,6 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    PublicData *pd;
+    ClientCore *core;
 };
 #endif // MAINWINDOW_H

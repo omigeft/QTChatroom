@@ -59,12 +59,16 @@
       <item row="0" column="2">
        <widget class="QLineEdit" name="IPInput">
         <property name="text">
-         <string/>
+         <string>127.0.0.1</string>
         </property>
        </widget>
       </item>
       <item row="2" column="2">
-       <widget class="QLineEdit" name="PortInput"/>
+       <widget class="QLineEdit" name="PortInput">
+        <property name="text">
+         <string>12345</string>
+        </property>
+       </widget>
       </item>
       <item row="0" column="3">
        <spacer name="horizontalSpacer_3">

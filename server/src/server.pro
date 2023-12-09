@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui network sql widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -19,12 +19,16 @@ SOURCES += \
     adminmanagement.cpp \
     main.cpp \
     messagemanage.cpp \
+    server.cpp \
+    servercore.cpp \
     usermanage.cpp \
     widget.cpp
 
 HEADERS += \
     adminmanagement.h \
     messagemanage.h \
+    server.h \
+    servercore.h \
     usermanage.h \
     widget.h
 

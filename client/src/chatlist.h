@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QStringList>
+#include <QRegularExpression>
 
 namespace Ui {
 class ChatList;

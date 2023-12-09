@@ -18,6 +18,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     chat.cpp \
     chatlist.cpp \
+    clientcore.cpp \
     loginwindow.cpp \
     main.cpp \
     mainwindow.cpp
@@ -25,7 +26,7 @@ SOURCES += \
 HEADERS += \
     chat.h \
     chatlist.h \
-    publicdata.h \
+    clientcore.h \
     loginwindow.h \
     mainwindow.h
 

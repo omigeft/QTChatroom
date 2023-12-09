@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QMessageBox>
 #include <QtNetwork>
-#include "publicdata.h"
+#include "clientcore.h"
 
 namespace Ui {
 class LoginWindow;
@@ -27,7 +27,7 @@ private slots:
 
 private:
     Ui::LoginWindow *ui;
-    PublicData *pd;
+    ClientCore *core;
 };
 
 #endif // LOGINWINDOW_H
