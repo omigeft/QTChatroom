@@ -107,19 +107,6 @@ bool ServerCore::registerAccount(const QString &userName, const QString &passwor
             .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
             .arg("NULL");
 
-    //qDebug() << sql_statement;
-
-//    qDebug() << query.exec("SELECT * FROM user;");
-
-//    while (query.next()) {
-//        QSqlRecord record = query.record();
-//        int columnCount = record.count();
-
-//        for (int i = 0; i < columnCount; ++i) {
-//            qDebug() << record.fieldName(i) << ":" << query.value(i);
-//        }
-//    }
-
     // 执行SQL语句
     if (!query.exec(sql_statement))
         return false;
@@ -130,30 +117,111 @@ bool ServerCore::registerAccount(const QString &userName, const QString &passwor
     return true;
 }
 
-void ServerCore::onReceiveMessage(const QString &message) {
+bool ServerCore::loginAccount(const QString &userName, const QString &password) {
+    QSqlQuery query;
+
+    // 检查用户名是否已存在
+    query.exec(QString("SELECT u_name FROM user WHERE u_name = '%1';").arg(userName));
+    query.next();
+    if (query.value(0).toString().isEmpty()) {
+        qDebug() << "用户名不存在!";
+        return false;
+    }
+
+    // 检查密码是否正确
+    query.exec(QString("SELECT pw FROM user WHERE u_name = '%1';").arg(userName));
+    query.next();
+    if (query.value(0).toString() != password) {
+        qDebug() << "密码错误!";
+        return false;
+    }
+
+    return true;
+}
+
+void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
     // 解析JSON字符串
     QJsonDocument jsonDoc = QJsonDocument::fromJson(message.toUtf8());
 
-    if (!jsonDoc.isNull() && jsonDoc.isObject()) {
-        QJsonObject jsonObj = jsonDoc.object();
+    if (jsonDoc.isNull() || !jsonDoc.isObject()) {
+        qDebug() << "数据报文解析失败!";
+        return;
+    }
+    QJsonObject jsonObj = jsonDoc.object();
 
-        if (jsonObj.contains("type") && jsonObj["type"].isString()) {
-            QString type = jsonObj["type"].toString();
-            QJsonObject dataObj = jsonObj["data"].toObject();
-            qDebug() << "Type:" << type;
+    if (jsonObj["state"].toString() != "request") {
+        qDebug() << "该数据报文不是请求报文!";
+        return;
+    }
 
-            if (type == "register") {
-                if (registerAccount(dataObj["userName"].toString(), dataObj["password"].toString()))
-                    qDebug() << "新账号注册成功";
-                else
-                    qDebug() << "新账号注册失败";
-            }
+    QString type = jsonObj["type"].toString();
+    QJsonObject dataObj = jsonObj["data"].toObject();
 
+    if (type == "test") {
+        if (dataObj["test"] == "test") {
+            qDebug() << "测试成功";
+
+            // 构建测试成功报文
+            // 创建一个 JSON 对象
+            QJsonObject resJsonObj;
+            resJsonObj["type"] = type;
+            resJsonObj["state"] = "success";
+
+            // 创建一个嵌套的JSON数据对象
+            QJsonObject resDataObj;
+            resDataObj["test"] = "test";
+
+            // 将嵌套的JSON数据对象添加到 "data" 字段
+            resJsonObj["data"] = resDataObj;
+
+            // 使用 QJsonDocument 生成 JSON 字符串
+            QJsonDocument resJsonDoc(resJsonObj);
+
+            QString message = resJsonDoc.toJson(QJsonDocument::Compact);
+
+            // 发送报文
+            socket->write(message.toUtf8());
         } else {
-            qDebug() << "无法确定数据报文的类型!";
+            qDebug() << "测试失败";
+            return;
+        }
+    } else if (type == "register") {
+        if (registerAccount(dataObj["userName"].toString(), dataObj["password"].toString())) {
+            qDebug() << "新账号注册成功";
+
+            // 构建注册成功报文
+            // 创建一个 JSON 对象
+            QJsonObject resJsonObj;
+            resJsonObj["type"] = type;
+            resJsonObj["state"] = "success";
+
+            // 创建一个嵌套的JSON数据对象
+            QJsonObject resDataObj;
+            resDataObj["userName"] = dataObj["userName"].toString();
+
+            // 将嵌套的JSON数据对象添加到 "data" 字段
+            resJsonObj["data"] = resDataObj;
+
+            // 使用 QJsonDocument 生成 JSON 字符串
+            QJsonDocument resJsonDoc(resJsonObj);
+            QString message = resJsonDoc.toJson(QJsonDocument::Compact);
+
+            // 发送报文
+            socket->write(message.toUtf8());
+        } else {
+            qDebug() << "新账号注册失败";
+            return;
+        }
+    } else if (type == "login") {
+        if (loginAccount(dataObj["userName"].toString(), dataObj["password"].toString())) {
+            qDebug() << "用户登录成功";
+        }else {
+            qDebug() << "用户登录失败";
+            return;
         }
     } else {
-        qDebug() << "数据报文解析失败!";
+        qDebug() << "数据报文类型不正确!";
+        return;
     }
 }
 

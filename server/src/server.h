@@ -17,7 +17,7 @@ private slots:
     void onReadyRead();
 
 signals:
-    void receiveMessage(const QString &message);
+    void receiveMessage(QTcpSocket *socket, const QString &message);
 };
 
 #endif // SERVER_H

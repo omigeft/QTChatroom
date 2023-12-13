@@ -1,9 +1,4 @@
 #include "chatlist.h"
-#include "ui_chatlist.h"
-#include "chat.h"
-#include <QStringList>
-#include <QDebug>
-#include <QMessageBox>
 ChatList::ChatList(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ChatList)
@@ -14,21 +9,24 @@ ChatList::ChatList(QWidget *parent) :
 ChatList::~ChatList()
 {
     delete ui;
+
+    // 获取核心实例
+    core = &ClientCore::getInstance();
 }
 void ChatList::initChatList()
 {
     //设置该聊天窗口的标题-----用户名
-    this->setWindowTitle("当前用户："+this->UserName);
+    this->setWindowTitle("当前用户：" + core->currentUserName);
 
-    //加载已加入的聊天室
-    Joinlist<<"加入的第1个聊天室"<<"加入的第2个聊天室"<<"加入的第3个聊天室";
-    ui->HJoinChatListWidget->addItems(Joinlist);
-    ui->HJoinChatListWidget->setCurrentRow(0);
-
-    //加载未加入的聊天室
-    UJoinlist<<"未加入的第1个聊天室"<<"未加入的第2个聊天室"<<"未加入的第3个聊天室";
-    ui->UJoinChatListWidget->addItems(UJoinlist);
-    ui->UJoinChatListWidget->setCurrentRow(0);
+//    //加载已加入的聊天室
+//    Joinlist<<"加入的第1个聊天室"<<"加入的第2个聊天室"<<"加入的第3个聊天室";
+//    ui->HJoinChatListWidget->addItems(Joinlist);
+//    ui->HJoinChatListWidget->setCurrentRow(0);
+//
+//    //加载未加入的聊天室
+//    UJoinlist<<"未加入的第1个聊天室"<<"未加入的第2个聊天室"<<"未加入的第3个聊天室";
+//    ui->UJoinChatListWidget->addItems(UJoinlist);
+//    ui->UJoinChatListWidget->setCurrentRow(0);
 }
 
 void ChatList::on_OpenChatButton_clicked()
@@ -40,7 +38,7 @@ void ChatList::on_OpenChatButton_clicked()
 
         //打开聊天界面
         Chat * userChat = new Chat;
-        userChat->ChatInit(UserName,chatName);
+        userChat->ChatInit(core->currentUserName,chatName);
         userChat->show();
     }
 }

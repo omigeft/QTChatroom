@@ -21,8 +21,10 @@ public:
 
     bool registerAccount(const QString &userName, const QString &password);
 
+    bool loginAccount(const QString &userName, const QString &password);
+
 private slots:
-    void onReceiveMessage(const QString &message);
+    void onReceiveMessage(QTcpSocket *socket, const QString &message);
 
 private:
     ServerCore(); // 私有构造函数，确保单例
@@ -39,7 +41,7 @@ public:
     QSqlTableModel* chatTableModel;
 
 private:
-    int maxUserNumber;                 // 用于计数累计用户数量，从而确定新建u_id
+    int maxUserNumber;              // 用于计数累计用户数量，从而确定新建u_id
 };
 
 #endif // SERVERCORE_H
