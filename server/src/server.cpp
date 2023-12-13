@@ -9,7 +9,8 @@ void Server::incomingConnection(qintptr socketDescriptor)
     QTcpSocket *clientSocket = new QTcpSocket(this);
     if (clientSocket->setSocketDescriptor(socketDescriptor))
     {
-        connect(clientSocket, SIGNAL(readyRead()), this, SLOT(readClient()));
+        this->addPendingConnection(clientSocket);
+        connect(clientSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
         connect(clientSocket, SIGNAL(disconnected()), clientSocket, SLOT(deleteLater()));
     }
     else
@@ -18,13 +19,15 @@ void Server::incomingConnection(qintptr socketDescriptor)
     }
 }
 
-void Server::readClient()
+void Server::onReadyRead()
 {
     QTcpSocket *clientSocket = qobject_cast<QTcpSocket *>(sender());
     if (clientSocket && clientSocket->bytesAvailable())
     {
         QByteArray data = clientSocket->readAll();
-        // 在这里你可以处理客户端发送的数据，这里我们简单地回显消息
-        clientSocket->write(data);
+        QString dataString = QString::fromUtf8(data);
+        qDebug() << "收到数据:" << dataString;
+        clientSocket->write("Data received!");   // 简单回复
+        emit receiveMessage(dataString);
     }
 }

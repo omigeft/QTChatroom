@@ -2,8 +2,10 @@
 #define CLIENTCORE_H
 
 #include <QtNetwork>
+#include <QJsonObject>
+#include <QJsonDocument>
 
-class ClientCore
+class ClientCore : public QObject
 {
 public:
     static ClientCore& getInstance() {

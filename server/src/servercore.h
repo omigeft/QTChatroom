@@ -6,7 +6,7 @@
 #include <QTableView>
 #include "server.h"
 
-class ServerCore
+class ServerCore : public QObject
 {
 public:
     static ServerCore& getInstance() {
@@ -18,6 +18,11 @@ public:
     bool createServer(QHostAddress address, quint16 port);
 
     bool createDatabase();
+
+    bool registerAccount(const QString &userName, const QString &password);
+
+private slots:
+    void onReceiveMessage(const QString &message);
 
 private:
     ServerCore(); // 私有构造函数，确保单例
@@ -32,6 +37,9 @@ public:
     QSqlDatabase db;                // 数据库
     QSqlTableModel* userTableModel;
     QSqlTableModel* chatTableModel;
+
+private:
+    int maxUserNumber;                 // 用于计数累计用户数量，从而确定新建u_id
 };
 
 #endif // SERVERCORE_H

@@ -3,7 +3,7 @@
 bool ServerCore::createServer(QHostAddress address, quint16 port) {
     // 检查格式是否正确
     if(!address.isNull() && port > 0) {
-        qDebug() << "正在连接到服务端...";
+        qDebug() << "正在创建服务端...";
     } else {
         qDebug() << "IP地址或端口号格式错误！";
         return false;
@@ -15,10 +15,12 @@ bool ServerCore::createServer(QHostAddress address, quint16 port) {
     serverAddress = address;
     serverPort = port;
     qDebug() << "Server listen on " << serverAddress.toString() << ":" << serverPort;
+
     if (!createDatabase()) {
         qDebug() << "Database connection failed!";
         return false;
     }
+
     return true;
 }
 
@@ -38,23 +40,27 @@ bool ServerCore::createDatabase() {
     QSqlQuery query;
     if (!query.exec(
                 "CREATE TABLE IF NOT EXISTS user ("
-                "u_id    INT PRIMARY KEY,"          // user id
-                "u_name  VARCHAR(20),"              // user name
-                "pw      VARCHAR(20),"              // password
-                "su_t    DATETIME,"                 // sign up time
-                "sd_t    DATETIME)"                 // sign down time
+                "u_id    INT PRIMARY KEY,"              // user id
+                "u_name  VARCHAR(20) UNIQUE NOT NULL,"  // user name
+                "pw      VARCHAR(20) NOT NULL,"         // password
+                "su_t    DATETIME,"                     // sign up time
+                "sd_t    DATETIME);"                    // sign down time
                 ))
         return false;
 
     if (!query.exec(
                 "CREATE TABLE IF NOT EXISTS chatroom ("
-                "c_id    INT PRIMARY KEY,"          // chatroom id
-                "c_name  VARCHAR(20),"              // chatroom name
-                "c_u_id  INT,"                      // creator user id
-                "cr_t    DATETIME,"                 // creation time
-                "ds_t    DATETIME)"                 // dissolution time
+                "c_id    INT PRIMARY KEY,"              // chatroom id
+                "c_name  VARCHAR(20) UNIQUE NOT NULL,"  // chatroom name
+                "c_u_id  INT NOT NULL,"                 // creator user id
+                "cr_t    DATETIME,"                     // creation time
+                "ds_t    DATETIME);"                    // dissolution time
                 ))
         return false;
+
+    query.exec("SELECT MAX(u_id) FROM user");
+    query.next();
+    maxUserNumber = query.value(0).toInt(); // 获取用户号最大值
 
     userTableModel = new QSqlTableModel;
     userTableModel->setTable("user"); // 替换为你的表名
@@ -81,7 +87,80 @@ bool ServerCore::createDatabase() {
     return true;
 }
 
-ServerCore::ServerCore() {} // 私有构造函数，确保单例
+bool ServerCore::registerAccount(const QString &userName, const QString &password) {
+    QSqlQuery query;
+
+    // 检查用户名是否已存在
+    query.exec(QString("SELECT u_name FROM user WHERE u_name = '%1';").arg(userName));
+    if (query.next()) {
+        qDebug() << "用户名已存在!";
+        return false;
+    }
+
+    // 插入新用户
+    QString sql_statement =
+            "INSERT INTO user (u_id, u_name, pw, su_t, sd_t) VALUES " +
+            QString("(%1,'%2','%3','%4',%5);")
+            .arg(++maxUserNumber)
+            .arg(userName)
+            .arg(password)
+            .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+            .arg("NULL");
+
+    //qDebug() << sql_statement;
+
+//    qDebug() << query.exec("SELECT * FROM user;");
+
+//    while (query.next()) {
+//        QSqlRecord record = query.record();
+//        int columnCount = record.count();
+
+//        for (int i = 0; i < columnCount; ++i) {
+//            qDebug() << record.fieldName(i) << ":" << query.value(i);
+//        }
+//    }
+
+    // 执行SQL语句
+    if (!query.exec(sql_statement))
+        return false;
+
+    // 更新界面显示的用户表
+    userTableModel->select();
+
+    return true;
+}
+
+void ServerCore::onReceiveMessage(const QString &message) {
+    // 解析JSON字符串
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(message.toUtf8());
+
+    if (!jsonDoc.isNull() && jsonDoc.isObject()) {
+        QJsonObject jsonObj = jsonDoc.object();
+
+        if (jsonObj.contains("type") && jsonObj["type"].isString()) {
+            QString type = jsonObj["type"].toString();
+            QJsonObject dataObj = jsonObj["data"].toObject();
+            qDebug() << "Type:" << type;
+
+            if (type == "register") {
+                if (registerAccount(dataObj["userName"].toString(), dataObj["password"].toString()))
+                    qDebug() << "新账号注册成功";
+                else
+                    qDebug() << "新账号注册失败";
+            }
+
+        } else {
+            qDebug() << "无法确定数据报文的类型!";
+        }
+    } else {
+        qDebug() << "数据报文解析失败!";
+    }
+}
+
+ServerCore::ServerCore() {
+    maxUserNumber = 0;
+    connect(&server, &Server::receiveMessage, this, &ServerCore::onReceiveMessage);
+} // 私有构造函数，确保单例
 
 ServerCore::~ServerCore() {
     if (userTableModel) delete userTableModel;

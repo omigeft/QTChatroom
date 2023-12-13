@@ -14,7 +14,10 @@ protected:
     void incomingConnection(qintptr socketDescriptor) override;
 
 private slots:
-    void readClient();
+    void onReadyRead();
+
+signals:
+    void receiveMessage(const QString &message);
 };
 
 #endif // SERVER_H
