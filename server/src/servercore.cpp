@@ -58,9 +58,13 @@ bool ServerCore::createDatabase() {
                 ))
         return false;
 
-    query.exec("SELECT MAX(u_id) FROM user");
-    query.next();
-    maxUserNumber = query.value(0).toInt(); // 获取用户号最大值
+    query.exec("SELECT MAX(u_id) FROM user;");
+    if (query.next())
+        maxUserNumber = query.value(0).toInt(); // 获取用户号最大值
+
+    query.exec("SELECT MAX(c_id) FROM chatroom;");
+    if (query.next())
+        maxChatroomNumber = query.value(0).toInt(); // 获取聊天室号最大值
 
     userTableModel = new QSqlTableModel;
     userTableModel->setTable("user"); // 替换为你的表名
@@ -139,6 +143,43 @@ bool ServerCore::loginAccount(const QString &userName, const QString &password) 
     return true;
 }
 
+bool ServerCore::createChatroom(const QString &chatroomName, const QString &userName) {
+    QSqlQuery query;
+
+    // 检查聊天室名是否已存在
+    query.exec(QString("SELECT c_name FROM chatroom WHERE c_name = '%1';").arg(chatroomName));
+    if (query.next()) {
+        qDebug() << "聊天室名已存在!";
+        return false;
+    }
+
+    // 检查用户名是否已存在
+    query.exec(QString("SELECT u_id FROM user WHERE u_name = '%1';").arg(userName));
+    if (!query.next()) {
+        qDebug() << "用户名不存在!";
+        return false;
+    }
+
+    // 插入新聊天室
+    QString sql_statement =
+            "INSERT INTO chatroom (c_id, c_name, c_u_id, cr_t, ds_t) VALUES " +
+            QString("(%1,'%2',%3,'%4',%5);")
+            .arg(++maxChatroomNumber)
+            .arg(chatroomName)
+            .arg(query.value(0).toInt())
+            .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+            .arg("NULL");
+
+    // 执行SQL语句
+    if (!query.exec(sql_statement))
+        return false;
+
+    // 更新界面显示的聊天室表
+    chatTableModel->select();
+
+    return true;
+}
+
 void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
     // 解析JSON字符串
     QJsonDocument jsonDoc = QJsonDocument::fromJson(message.toUtf8());
@@ -202,6 +243,23 @@ void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
             sendJsonObj(socket, resJsonObj);
             return;
         }
+    } else if (type == "createChatroom") {
+        if (createChatroom(dataObj["chatName"].toString(), dataObj["creatorName"].toString())) {
+            qDebug() << "创建聊天室成功";
+            QJsonObject resJsonObj = baseJsonObj(type, "success");
+
+            // 编辑数据字段
+            QJsonObject resDataObj = resJsonObj["data"].toObject();
+            resDataObj["chatName"] = dataObj["chatName"].toString();
+            resJsonObj["data"] = resDataObj;
+
+            sendJsonObj(socket, resJsonObj);
+        } else {
+            qDebug() << "创建聊天室失败";
+            QJsonObject resJsonObj = baseJsonObj(type, "failed");
+            sendJsonObj(socket, resJsonObj);
+            return;
+        }
     } else {
         qDebug() << "数据报文类型不正确!";
         return;
@@ -210,6 +268,7 @@ void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
 
 ServerCore::ServerCore() {
     maxUserNumber = 0;
+    maxChatroomNumber = 0;
     connect(&server, &Server::receiveMessage, this, &ServerCore::onReceiveMessage);
 } // 私有构造函数，确保单例
 

@@ -32,13 +32,9 @@ void LoginWindow::on_LoginButton_clicked()
 {
     if (core->loginRequest(ui->NameInput->text(), ui->PassWordInput->text())) {
         //切换到用户列表
-        qDebug() << "登录成功1";
         ChatList * userChatList = new ChatList();
-        qDebug() << "登录成功2";
         this->close();
-        qDebug() << "登录成功3";
         userChatList->initChatList();
-        qDebug() << "登录成功4";
         userChatList->show();
     }
 }

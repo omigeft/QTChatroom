@@ -2,7 +2,7 @@
 
 ClientCore::ClientCore() {} // 私有构造函数，确保单例
 
-bool ClientCore::connectServer(QHostAddress address, quint16 port) {
+bool ClientCore::connectServer(const QHostAddress &address, const quint16 &port) {
     // 检查格式是否正确
     if(!address.isNull() && port > 0)
     {
@@ -78,7 +78,7 @@ bool ClientCore::connectServer(QHostAddress address, quint16 port) {
     return true;
 }
 
-bool ClientCore::registerRequest(QString userName, QString password) {
+bool ClientCore::registerRequest(const QString &userName, const QString &password) {
     // 检查用户名和密码是否在6-20个字符之间
     if (userName.length() < 6 || userName.length() > 20) {
         qDebug() << "用户名长度不符合要求!";
@@ -91,8 +91,8 @@ bool ClientCore::registerRequest(QString userName, QString password) {
 
     // 定义正则表达式模式，表示只包含数字、英文字母和特殊字符
     QRegularExpression regex("^[a-zA-Z0-9!@#$%^&*()-_+=<>?]+$");
-    // 使用正则表达式匹配字符串
-    if (regex.match(userName).hasMatch() && regex.match(password).hasMatch()) {
+    // 使用正则表达式匹配检查密码字符串
+    if (regex.match(password).hasMatch()) {
         QJsonObject jsonObj = baseJsonObj("register", "request");
 
         // 编辑数据字段
@@ -136,9 +136,9 @@ bool ClientCore::registerRequest(QString userName, QString password) {
     return true;
 }
 
-bool ClientCore::loginRequest(QString userName, QString password) {
-    // 检查用户名和密码是否在6-20个字符之间
-    if (userName.length() < 6 || userName.length() > 20) {
+bool ClientCore::loginRequest(const QString &userName, const QString &password) {
+    // 检查用户名和密码是否在1-20个字符之间
+    if (userName.length() < 1 || userName.length() > 20) {
         qDebug() << "用户名长度不符合要求!";
         return false;
     }
@@ -149,8 +149,8 @@ bool ClientCore::loginRequest(QString userName, QString password) {
 
     // 定义正则表达式模式，表示只包含数字、英文字母和特殊字符
     QRegularExpression regex("^[a-zA-Z0-9!@#$%^&*()-_+=<>?]+$");
-    // 使用正则表达式匹配字符串
-    if (regex.match(userName).hasMatch() && regex.match(password).hasMatch()) {
+    // 使用正则表达式匹配检查密码字符串
+    if (regex.match(password).hasMatch()) {
         QJsonObject jsonObj = baseJsonObj("login", "request");
 
         // 编辑数据字段
@@ -196,7 +196,53 @@ bool ClientCore::loginRequest(QString userName, QString password) {
     return true;
 }
 
-bool ClientCore::checkResponseMessage(QString message, QString type) {
+bool ClientCore::createChatroomRequest(const QString &chatName, const QString &creatorName) {
+    // 检查聊天室名称是否在1-20个字符之间
+    if (chatName.length() < 1 || chatName.length() > 20) {
+        qDebug() << "聊天室名称长度不符合要求!";
+        return false;
+    }
+
+    QJsonObject jsonObj = baseJsonObj("createChatroom", "request");
+
+    // 编辑数据字段
+    QJsonObject dataObj = jsonObj["data"].toObject();
+    dataObj["chatName"] = chatName;
+    dataObj["creatorName"] = creatorName;
+    jsonObj["data"] = dataObj;
+
+    sendJsonObj(jsonObj);
+
+    // 等待数据接收
+    if (socket.waitForReadyRead(3000)) {
+        // 读取服务端的响应
+        QString response = QString::fromUtf8(socket.readAll());
+        qDebug() << "收到服务端消息：" << response;
+
+        if (!checkResponseMessage(response, jsonObj["type"].toString())) {
+            return false;
+        }
+
+        QJsonDocument resJsonDoc = QJsonDocument::fromJson(response.toUtf8());
+        QJsonObject resJsonObj = resJsonDoc.object();
+        QJsonObject resDataObj = resJsonObj["data"].toObject();
+
+        if (resDataObj["chatName"].toString() != chatName) {
+            qDebug() << "收到响应：聊天室名称不匹配";
+            return false;
+        }
+
+        qDebug() << "收到响应：创建聊天室成功";
+
+    } else {
+        qDebug() << "未能接收到服务端响应";
+        return false;
+    }
+
+    return true;
+}
+
+bool ClientCore::checkResponseMessage(const QString &message, const QString &type) {
     // 解析服务端响应的 JSON 字符串
     QJsonDocument resJsonDoc = QJsonDocument::fromJson(message.toUtf8());
 

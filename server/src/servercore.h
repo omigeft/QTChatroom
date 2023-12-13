@@ -23,6 +23,8 @@ public:
 
     bool loginAccount(const QString &userName, const QString &password);
 
+    bool createChatroom(const QString &chatroomName, const QString &userName);
+
 private slots:
     void onReceiveMessage(QTcpSocket *socket, const QString &message);
 
@@ -46,6 +48,7 @@ public:
 
 private:
     int maxUserNumber;              // 用于计数累计用户数量，从而确定新建u_id
+    int maxChatroomNumber;          // 用于计数累计聊天室数量，从而确定新建c_id
 };
 
 #endif // SERVERCORE_H

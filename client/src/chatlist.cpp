@@ -18,16 +18,6 @@ void ChatList::initChatList()
 {
     //设置该聊天窗口的标题-----用户名
     this->setWindowTitle("当前用户：" + core->currentUserName);
-
-//    //加载已加入的聊天室
-//    Joinlist<<"加入的第1个聊天室"<<"加入的第2个聊天室"<<"加入的第3个聊天室";
-//    ui->HJoinChatListWidget->addItems(Joinlist);
-//    ui->HJoinChatListWidget->setCurrentRow(0);
-//
-//    //加载未加入的聊天室
-//    UJoinlist<<"未加入的第1个聊天室"<<"未加入的第2个聊天室"<<"未加入的第3个聊天室";
-//    ui->UJoinChatListWidget->addItems(UJoinlist);
-//    ui->UJoinChatListWidget->setCurrentRow(0);
 }
 
 void ChatList::on_OpenChatButton_clicked()
@@ -59,15 +49,11 @@ void ChatList::on_JoinButton_clicked()
 void ChatList::on_NewChatButton_clicked()
 {
     QString chatName = ui->ChatNameInput->text();
-    if(chatName!=""){
-    //创建新聊天并及加入到列表
-    Joinlist<<chatName;
-    ui->HJoinChatListWidget->addItem(chatName);
-    qDebug()<<chatName;
-    //将注册信息发到服务器
+    if (chatName.length() > 0 && chatName.length() <= 20) {
+        core->createChatroomRequest(ui->ChatNameInput->text(), core->currentUserName);
+    } else {
+        QMessageBox::information(this,"群聊名有误","群聊名长度应在1~20个字符之间");
     }
-    else
-        QMessageBox::information(this,"群聊名有误","群聊名不能为空");
 
 }
 

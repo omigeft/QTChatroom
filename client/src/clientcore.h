@@ -12,16 +12,18 @@ public:
         return instance;
     }
 
-    bool connectServer(QHostAddress address, quint16 port);
+    bool connectServer(const QHostAddress &address, const quint16 &port);
 
-    bool registerRequest(QString userName, QString password);
+    bool registerRequest(const QString &userName, const QString &password);
 
-    bool loginRequest(QString userName, QString password);
+    bool loginRequest(const QString &userName, const QString &password);
+
+    bool createChatroomRequest(const QString &chatName, const QString &creatorName);
 
 private:
     ClientCore(); // 私有构造函数，确保单例
 
-    bool checkResponseMessage(QString message, QString type);
+    bool checkResponseMessage(const QString &message, const QString &type);
 
     QJsonObject baseJsonObj(const QString &type, const QString &state);
 
