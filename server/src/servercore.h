@@ -31,6 +31,10 @@ private:
 
     ~ServerCore();
 
+    QJsonObject baseJsonObj(const QString &type, const QString &state);
+
+    void sendJsonObj(QTcpSocket *socket, const QJsonObject &jsonObj);
+
 public:
     Server server;                  // 服务器
     QHostAddress serverAddress;     // 服务器IP地址

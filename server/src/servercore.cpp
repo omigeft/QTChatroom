@@ -160,63 +160,46 @@ void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
     if (type == "test") {
         if (dataObj["test"] == "test") {
             qDebug() << "测试成功";
-
-            // 构建测试成功报文
-            // 创建一个 JSON 对象
-            QJsonObject resJsonObj;
-            resJsonObj["type"] = type;
-            resJsonObj["state"] = "success";
-
-            // 创建一个嵌套的JSON数据对象
-            QJsonObject resDataObj;
-            resDataObj["test"] = "test";
-
-            // 将嵌套的JSON数据对象添加到 "data" 字段
-            resJsonObj["data"] = resDataObj;
-
-            // 使用 QJsonDocument 生成 JSON 字符串
-            QJsonDocument resJsonDoc(resJsonObj);
-
-            QString message = resJsonDoc.toJson(QJsonDocument::Compact);
-
-            // 发送报文
-            socket->write(message.toUtf8());
+            QJsonObject resJsonObj = baseJsonObj(type, "success");
+            sendJsonObj(socket, resJsonObj);
         } else {
             qDebug() << "测试失败";
+            QJsonObject resJsonObj = baseJsonObj(type, "failed");
+            sendJsonObj(socket, resJsonObj);
             return;
         }
     } else if (type == "register") {
         if (registerAccount(dataObj["userName"].toString(), dataObj["password"].toString())) {
             qDebug() << "新账号注册成功";
+            QJsonObject resJsonObj = baseJsonObj(type, "success");
 
-            // 构建注册成功报文
-            // 创建一个 JSON 对象
-            QJsonObject resJsonObj;
-            resJsonObj["type"] = type;
-            resJsonObj["state"] = "success";
-
-            // 创建一个嵌套的JSON数据对象
-            QJsonObject resDataObj;
+            // 编辑数据字段
+            QJsonObject resDataObj = resJsonObj["data"].toObject();
             resDataObj["userName"] = dataObj["userName"].toString();
-
-            // 将嵌套的JSON数据对象添加到 "data" 字段
             resJsonObj["data"] = resDataObj;
 
-            // 使用 QJsonDocument 生成 JSON 字符串
-            QJsonDocument resJsonDoc(resJsonObj);
-            QString message = resJsonDoc.toJson(QJsonDocument::Compact);
-
-            // 发送报文
-            socket->write(message.toUtf8());
+            sendJsonObj(socket, resJsonObj);
         } else {
             qDebug() << "新账号注册失败";
+            QJsonObject resJsonObj = baseJsonObj(type, "failed");
+            sendJsonObj(socket, resJsonObj);
             return;
         }
     } else if (type == "login") {
         if (loginAccount(dataObj["userName"].toString(), dataObj["password"].toString())) {
             qDebug() << "用户登录成功";
+            QJsonObject resJsonObj = baseJsonObj(type, "success");
+
+            // 编辑数据字段
+            QJsonObject resDataObj = resJsonObj["data"].toObject();
+            resDataObj["userName"] = dataObj["userName"].toString();
+            resJsonObj["data"] = resDataObj;
+
+            sendJsonObj(socket, resJsonObj);
         }else {
             qDebug() << "用户登录失败";
+            QJsonObject resJsonObj = baseJsonObj(type, "failed");
+            sendJsonObj(socket, resJsonObj);
             return;
         }
     } else {
@@ -233,4 +216,24 @@ ServerCore::ServerCore() {
 ServerCore::~ServerCore() {
     if (userTableModel) delete userTableModel;
     if (chatTableModel) delete chatTableModel;
+}
+
+QJsonObject ServerCore::baseJsonObj(const QString &type, const QString &state) {
+    // 创建一个 JSON 对象
+    QJsonObject jsonObj;
+    jsonObj["type"] = type;
+    jsonObj["state"] = state;
+
+    // 创建一个嵌套的JSON数据对象
+    QJsonObject dataObj;
+    jsonObj["data"] = dataObj;
+
+    return jsonObj;
+}
+
+void ServerCore::sendJsonObj(QTcpSocket *socket, const QJsonObject &jsonObj) {
+    // 使用 QJsonDocument 生成 JSON 字符串，并发送报文
+    QJsonDocument jsonDoc(jsonObj);
+    QString message = jsonDoc.toJson(QJsonDocument::Compact);
+    socket->write(message.toUtf8());
 }

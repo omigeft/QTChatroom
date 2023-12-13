@@ -23,6 +23,10 @@ private:
 
     bool checkResponseMessage(QString message, QString type);
 
+    QJsonObject baseJsonObj(const QString &type, const QString &state);
+
+    void sendJsonObj(const QJsonObject &jsonObj);
+
 public:
     QTcpSocket socket;          // 套接字
     QHostAddress serverAddress; // 服务器IP地址

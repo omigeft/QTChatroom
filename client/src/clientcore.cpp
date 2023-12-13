@@ -93,25 +93,15 @@ bool ClientCore::registerRequest(QString userName, QString password) {
     QRegularExpression regex("^[a-zA-Z0-9!@#$%^&*()-_+=<>?]+$");
     // 使用正则表达式匹配字符串
     if (regex.match(userName).hasMatch() && regex.match(password).hasMatch()) {
-        // 创建一个 JSON 对象
-        QJsonObject jsonObj;
-        jsonObj["type"] = "register";
-        jsonObj["state"] = "request";
+        QJsonObject jsonObj = baseJsonObj("register", "request");
 
-        // 创建一个嵌套的JSON数据对象
-        QJsonObject dataObj;
+        // 编辑数据字段
+        QJsonObject dataObj = jsonObj["data"].toObject();
         dataObj["userName"] = userName;
         dataObj["password"] = password;
-
-        // 将嵌套的JSON数据对象添加到 "data" 字段
         jsonObj["data"] = dataObj;
 
-        // 使用 QJsonDocument 生成 JSON 字符串
-        QJsonDocument doc(jsonObj);
-        QString message = doc.toJson(QJsonDocument::Compact);
-
-        // 发送注册请求到服务端
-        socket.write(message.toUtf8());
+        sendJsonObj(jsonObj);
 
         // 等待数据接收
         if (socket.waitForReadyRead(3000)) {
@@ -161,25 +151,15 @@ bool ClientCore::loginRequest(QString userName, QString password) {
     QRegularExpression regex("^[a-zA-Z0-9!@#$%^&*()-_+=<>?]+$");
     // 使用正则表达式匹配字符串
     if (regex.match(userName).hasMatch() && regex.match(password).hasMatch()) {
-        // 创建一个 JSON 对象
-        QJsonObject jsonObj;
-        jsonObj["type"] = "login";
-        jsonObj["state"] = "request";
+        QJsonObject jsonObj = baseJsonObj("login", "request");
 
-        // 创建一个嵌套的JSON数据对象
-        QJsonObject dataObj;
+        // 编辑数据字段
+        QJsonObject dataObj = jsonObj["data"].toObject();
         dataObj["userName"] = userName;
         dataObj["password"] = password;
-
-        // 将嵌套的JSON数据对象添加到 "data" 字段
         jsonObj["data"] = dataObj;
 
-        // 使用 QJsonDocument 生成 JSON 字符串
-        QJsonDocument doc(jsonObj);
-        QString message = doc.toJson(QJsonDocument::Compact);
-
-        // 发送登录请求到服务端
-        socket.write(message.toUtf8());
+        sendJsonObj(jsonObj);
 
         // 等待数据接收
         if (socket.waitForReadyRead(3000)) {
@@ -238,4 +218,24 @@ bool ClientCore::checkResponseMessage(QString message, QString type) {
     }
 
     return true;
+}
+
+QJsonObject ClientCore::baseJsonObj(const QString &type, const QString &state) {
+    // 创建一个 JSON 对象
+    QJsonObject jsonObj;
+    jsonObj["type"] = type;
+    jsonObj["state"] = state;
+
+    // 创建一个嵌套的JSON数据对象
+    QJsonObject dataObj;
+    jsonObj["data"] = dataObj;
+
+    return jsonObj;
+}
+
+void ClientCore::sendJsonObj(const QJsonObject &jsonObj) {
+    // 使用 QJsonDocument 生成 JSON 字符串，并发送报文
+    QJsonDocument jsonDoc(jsonObj);
+    QString message = jsonDoc.toJson(QJsonDocument::Compact);
+    socket.write(message.toUtf8());
 }

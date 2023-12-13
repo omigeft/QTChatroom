@@ -4,15 +4,16 @@ ChatList::ChatList(QWidget *parent) :
     ui(new Ui::ChatList)
 {
     ui->setupUi(this);
+
+    // 获取核心实例
+    core = &ClientCore::getInstance();
 }
 
 ChatList::~ChatList()
 {
     delete ui;
-
-    // 获取核心实例
-    core = &ClientCore::getInstance();
 }
+
 void ChatList::initChatList()
 {
     //设置该聊天窗口的标题-----用户名
