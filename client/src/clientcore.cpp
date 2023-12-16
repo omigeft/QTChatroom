@@ -294,6 +294,132 @@ bool ClientCore::getChatListRequest(const QString &userName) {
     return true;
 }
 
+QJsonArray ClientCore::getChatUserListRequest(const QString &chatName) {
+    QJsonObject jsonObj = baseJsonObj("getChatUserList", "request");
+
+    // 编辑数据字段
+    QJsonObject dataObj = jsonObj["data"].toObject();
+    dataObj["chatName"] = chatName;
+    jsonObj["data"] = dataObj;
+
+    sendJsonObj(jsonObj);
+
+    // 等待数据接收
+    if (socket.waitForReadyRead(3000)) {
+        // 读取服务端的响应
+        QString response = QString::fromUtf8(socket.readAll());
+        qDebug() << "收到服务端消息：" << response;
+
+        if (!checkResponseMessage(response, jsonObj["type"].toString())) {
+            return QJsonArray();
+        }
+
+        QJsonDocument resJsonDoc = QJsonDocument::fromJson(response.toUtf8());
+        QJsonObject resJsonObj = resJsonDoc.object();
+        QJsonObject resDataObj = resJsonObj["data"].toObject();
+
+        if (resDataObj["chatName"].toString() != chatName) {
+            qDebug() << "收到响应：聊天室名称不匹配";
+            return QJsonArray();
+        }
+
+        // 获取聊天室用户列表
+        QJsonArray chatUserList = resDataObj["chatUserList"].toArray();
+
+        qDebug() << "收到响应：获取聊天室用户列表成功";
+
+        return chatUserList;
+
+    } else {
+        qDebug() << "未能接收到服务端响应";
+        return QJsonArray();
+    }
+}
+
+QJsonArray ClientCore::getMessageRequest(const QString &chatName, const int latestMessageID) {
+    QJsonObject jsonObj = baseJsonObj("getMessage", "request");
+
+    // 编辑数据字段
+    QJsonObject dataObj = jsonObj["data"].toObject();
+    dataObj["chatName"] = chatName;
+    dataObj["latestMessageID"] = latestMessageID;
+    jsonObj["data"] = dataObj;
+
+    sendJsonObj(jsonObj);
+
+    // 等待数据接收
+    if (socket.waitForReadyRead(3000)) {
+        // 读取服务端的响应
+        QString response = QString::fromUtf8(socket.readAll());
+        qDebug() << "收到服务端消息：" << response;
+
+        if (!checkResponseMessage(response, jsonObj["type"].toString())) {
+            return QJsonArray();
+        }
+
+        QJsonDocument resJsonDoc = QJsonDocument::fromJson(response.toUtf8());
+        QJsonObject resJsonObj = resJsonDoc.object();
+        QJsonObject resDataObj = resJsonObj["data"].toObject();
+
+        if (resDataObj["chatName"].toString() != chatName) {
+            qDebug() << "收到响应：聊天室名称不匹配";
+            return QJsonArray();
+        }
+
+        // 获取聊天室消息列表
+        QJsonArray messageList = resDataObj["messageList"].toArray();
+
+        qDebug() << "收到响应：获取聊天室消息列表成功";
+
+        return messageList;
+
+    } else {
+        qDebug() << "未能接收到服务端响应";
+        return QJsonArray();
+    }
+}
+
+bool ClientCore::sendMessageRequest(const QString &chatName, const QString &senderName, const QString &message) {
+    QJsonObject jsonObj = baseJsonObj("sendMessage", "request");
+
+    // 编辑数据字段
+    QJsonObject dataObj = jsonObj["data"].toObject();
+    dataObj["chatName"] = chatName;
+    dataObj["senderName"] = senderName;
+    dataObj["message"] = message;
+    jsonObj["data"] = dataObj;
+
+    sendJsonObj(jsonObj);
+
+    // 等待数据接收
+    if (socket.waitForReadyRead(3000)) {
+        // 读取服务端的响应
+        QString response = QString::fromUtf8(socket.readAll());
+        qDebug() << "收到服务端消息：" << response;
+
+        if (!checkResponseMessage(response, jsonObj["type"].toString())) {
+            return false;
+        }
+
+        QJsonDocument resJsonDoc = QJsonDocument::fromJson(response.toUtf8());
+        QJsonObject resJsonObj = resJsonDoc.object();
+        QJsonObject resDataObj = resJsonObj["data"].toObject();
+
+        if (resDataObj["chatName"].toString() != chatName) {
+            qDebug() << "收到响应：聊天室名称不匹配";
+            return false;
+        }
+
+        qDebug() << "收到响应：发送消息成功";
+
+        return true;
+
+    } else {
+        qDebug() << "未能接收到服务端响应";
+        return false;
+    }
+}
+
 bool ClientCore::checkResponseMessage(const QString &message, const QString &type) {
     // 解析服务端响应的 JSON 字符串
     QJsonDocument resJsonDoc = QJsonDocument::fromJson(message.toUtf8());

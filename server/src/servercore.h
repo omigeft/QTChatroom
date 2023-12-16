@@ -29,6 +29,12 @@ public:
 
     QJsonArray getUnjoinedChatList(const QString &userName);
 
+    QJsonArray getChatUserList(const QString &chatName);
+
+    QJsonArray getMessage(const QString &chatName, const int latestMessageID);
+
+    bool sendMessage(const QString &chatName, const QString &senderName, const QString &message);
+
 private slots:
     void onReceiveMessage(QTcpSocket *socket, const QString &message);
 
@@ -53,6 +59,7 @@ public:
 private:
     int maxUserNumber;              // 用于计数累计用户数量，从而确定新建u_id
     int maxChatroomNumber;          // 用于计数累计聊天室数量，从而确定新建c_id
+    int maxMessageNumber;           // 用于计数累计消息数量，从而确定新建m_id
 };
 
 #endif // SERVERCORE_H

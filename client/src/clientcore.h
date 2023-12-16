@@ -22,6 +22,12 @@ public:
 
     bool getChatListRequest(const QString &userName);
 
+    QJsonArray getChatUserListRequest(const QString &chatName);
+
+    QJsonArray getMessageRequest(const QString &chatName, const int latestMessageID);
+
+    bool sendMessageRequest(const QString &chatName, const QString &senderName, const QString &message);
+
 private:
     ClientCore(); // 私有构造函数，确保单例
 

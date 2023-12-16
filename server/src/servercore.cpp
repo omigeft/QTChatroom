@@ -114,6 +114,14 @@ bool ServerCore::createDatabase() {
     if (query.next())
         maxChatroomNumber = query.value(0).toInt(); // 获取聊天室号最大值
 
+    query.exec("SELECT MAX(m_id) FROM message;");
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
+    if (query.next())
+        maxMessageNumber = query.value(0).toInt(); // 获取消息号最大值
+
     userTableModel = new QSqlTableModel;
     userTableModel->setTable("user"); // 替换为你的表名
     //userTableModel->setEditStrategy(QSqlTableModel::OnFieldChange);    // 在界面上修改后数据立刻保存到数据库
@@ -274,7 +282,7 @@ QJsonArray ServerCore::getJoinedChatList(const QString &userName) {
         "WHERE u_name = '%1';")
         .arg(userName));
     if (query.lastError().isValid()) {
-        qDebug() << query.lastError();
+        qDebug() << "When getJoinedChatList: " << query.lastError();
         return chatList;
     }
 
@@ -291,14 +299,15 @@ QJsonArray ServerCore::getUnjoinedChatList(const QString &userName) {
 
     // 查询该用户未加入的所有聊天室
     query.exec(QString(
-        "SELECT c_name FROM chatroom"
-        "WHERE c_id NOT IN ("
-        "SELECT c_id FROM user_chatroom"
-        "INNER JOIN user ON user_chatroom.u_id = user.u_id"
+        "SELECT c_name FROM chatroom "
+        "WHERE c_id NOT IN "
+        "(SELECT user_chatroom.c_id FROM user_chatroom "
+        "INNER JOIN chatroom ON user_chatroom.c_id = chatroom.c_id "
+        "INNER JOIN user ON user_chatroom.u_id = user.u_id "
         "WHERE u_name = '%1');")
         .arg(userName));
     if (query.lastError().isValid()) {
-        qDebug() << query.lastError();
+        qDebug() << "When getUnjoinedChatList: " << query.lastError();
         return chatList;
     }
 
@@ -307,6 +316,107 @@ QJsonArray ServerCore::getUnjoinedChatList(const QString &userName) {
     }
 
     return chatList;
+}
+
+QJsonArray ServerCore::getChatUserList(const QString &chatName) {
+    QJsonArray userList;
+    QSqlQuery query;
+
+    // 查询该聊天室的所有用户
+    query.exec(QString(
+        "SELECT u_name FROM user_chatroom "
+        "INNER JOIN chatroom ON user_chatroom.c_id = chatroom.c_id "
+        "INNER JOIN user ON user_chatroom.u_id = user.u_id "
+        "WHERE c_name = '%1';")
+        .arg(chatName));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return userList;
+    }
+
+    while (query.next()) {
+        userList.append(query.value(0).toString());
+    }
+
+    return userList;
+}
+
+QJsonArray ServerCore::getMessage(const QString &chatName, const int latestMessageID) {
+    QJsonArray messageList;
+    QSqlQuery query;
+
+    // 查询该聊天室 ID > latestMessageID 的所有消息（每条聊天记录包含id,name,content,time）
+    query.exec(QString(
+        "SELECT m_id, u_name, m_text, m_t FROM message "
+        "INNER JOIN user ON message.m_u_id = user.u_id "
+        "INNER JOIN chatroom ON message.m_c_id = chatroom.c_id "
+        "WHERE c_name = '%1' AND m_id > %2 "
+        "ORDER BY message.m_t ASC;")
+        .arg(chatName)
+        .arg(latestMessageID));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return messageList;
+    }
+
+    while (query.next()) {
+        QJsonObject message;
+        message.insert("id", query.value(0).toInt());
+        message.insert("name", query.value(1).toString());
+        message.insert("content", query.value(2).toString());
+        message.insert("time", query.value(3).toString());
+        messageList.append(message);
+    }
+
+    return messageList;
+}
+
+bool ServerCore::sendMessage(const QString &chatName, const QString &senderName, const QString &message) {
+    QSqlQuery query;
+
+    // 查询该聊天室的 ID
+    query.exec(QString(
+        "SELECT c_id FROM chatroom WHERE c_name = '%1';")
+        .arg(chatName));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
+    if (!query.next()) {
+        qDebug() << "聊天室不存在!";
+        return false;
+    }
+    int chatID = query.value(0).toInt();
+
+    // 查询该用户的 ID
+    query.exec(QString(
+        "SELECT u_id FROM user WHERE u_name = '%1';")
+        .arg(senderName));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
+    if (!query.next()) {
+        qDebug() << "用户不存在!";
+        return false;
+    }
+    int senderID = query.value(0).toInt();
+
+    // 插入消息 m_id, m_u_id, m_c_id, m_t, m_text
+    query.exec(QString(
+        "INSERT INTO message (m_id, m_u_id, m_c_id, m_t, m_text) "
+        "VALUES (%1,%2,%3,'%4','%5');")
+        .arg(++maxMessageNumber)
+        .arg(senderID)
+        .arg(chatID)
+        .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+        .arg(message));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
+
+    return true;
 }
 
 void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
@@ -404,6 +514,51 @@ void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
         resJsonObj["data"] = resDataObj;
 
         sendJsonObj(socket, resJsonObj);
+    } else if (type == "getChatUserList") {
+        QJsonArray chatUserList = getChatUserList(dataObj["chatName"].toString());
+
+        qDebug() << "获取聊天室用户列表成功";
+        QJsonObject resJsonObj = baseJsonObj(type, "success");
+
+        // 编辑数据字段
+        QJsonObject resDataObj = resJsonObj["data"].toObject();
+        resDataObj["chatName"] = dataObj["chatName"].toString();
+        resDataObj["chatUserList"] = chatUserList;
+        resJsonObj["data"] = resDataObj;
+
+        sendJsonObj(socket, resJsonObj);
+    } else if (type == "getMessage") {
+        QJsonArray messageList = getMessage(dataObj["chatName"].toString(), dataObj["latestMessageID"].toInt());
+
+        qDebug() << "获取聊天室消息成功";
+        QJsonObject resJsonObj = baseJsonObj(type, "success");
+
+        // 编辑数据字段
+        QJsonObject resDataObj = resJsonObj["data"].toObject();
+        resDataObj["chatName"] = dataObj["chatName"].toString();
+        resDataObj["messageList"] = messageList;
+        resJsonObj["data"] = resDataObj;
+
+        sendJsonObj(socket, resJsonObj);
+    } else if (type == "sendMessage") {
+        if (sendMessage(dataObj["chatName"].toString(), dataObj["senderName"].toString(), dataObj["message"].toString())) {
+            qDebug() << "发送消息成功";
+            QJsonObject resJsonObj = baseJsonObj(type, "success");
+
+            // 编辑数据字段
+            QJsonObject resDataObj = resJsonObj["data"].toObject();
+            resDataObj["chatName"] = dataObj["chatName"].toString();
+            resDataObj["senderName"] = dataObj["senderName"].toString();
+            resDataObj["message"] = dataObj["message"].toString();
+            resJsonObj["data"] = resDataObj;
+
+            sendJsonObj(socket, resJsonObj);
+        } else {
+            qDebug() << "发送消息失败";
+            QJsonObject resJsonObj = baseJsonObj(type, "failed");
+            sendJsonObj(socket, resJsonObj);
+            return;
+        }
     } else {
         qDebug() << "数据报文类型不正确!";
         return;
@@ -413,6 +568,7 @@ void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
 ServerCore::ServerCore() {
     maxUserNumber = 0;
     maxChatroomNumber = 0;
+    maxMessageNumber = 0;
     connect(&server, &Server::receiveMessage, this, &ServerCore::onReceiveMessage);
 } // 私有构造函数，确保单例
 
