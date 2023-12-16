@@ -21,8 +21,9 @@ class ChatList : public QWidget
 
 public:
     explicit ChatList(QWidget *parent = nullptr);
-    void initChatList();
     ~ChatList();
+
+    void refreshChatList();
 
 private slots:
     void on_OpenChatButton_clicked();
@@ -34,10 +35,6 @@ private slots:
     void on_SortChatButton_clicked();
 
 private:
-    QStringList Joinlist;
-    QStringList UJoinlist;
-    QStringList selectlist;
-
     Ui::ChatList *ui;
     ClientCore *core;
 };

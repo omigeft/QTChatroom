@@ -38,31 +38,79 @@ bool ServerCore::createDatabase() {
     qDebug() << "Database connection successful!!";
 
     QSqlQuery query;
-    if (!query.exec(
-                "CREATE TABLE IF NOT EXISTS user ("
-                "u_id    INT PRIMARY KEY,"              // user id
-                "u_name  VARCHAR(20) UNIQUE NOT NULL,"  // user name
-                "pw      VARCHAR(20) NOT NULL,"         // password
-                "su_t    DATETIME,"                     // sign up time
-                "sd_t    DATETIME);"                    // sign down time
-                ))
+    // 创建用户表user
+    query.exec(
+        "CREATE TABLE IF NOT EXISTS user ("
+        "u_id    INT PRIMARY KEY,"              // user id
+        "u_name  VARCHAR(20) UNIQUE NOT NULL,"  // user name
+        "pw      VARCHAR(20) NOT NULL,"         // password
+        "su_t    DATETIME,"                     // sign up time
+        "sd_t    DATETIME);"                    // sign down time
+        );
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
         return false;
+    }
 
-    if (!query.exec(
-                "CREATE TABLE IF NOT EXISTS chatroom ("
-                "c_id    INT PRIMARY KEY,"              // chatroom id
-                "c_name  VARCHAR(20) UNIQUE NOT NULL,"  // chatroom name
-                "c_u_id  INT NOT NULL,"                 // creator user id
-                "cr_t    DATETIME,"                     // creation time
-                "ds_t    DATETIME);"                    // dissolution time
-                ))
+    // 创建聊天室表chatroom
+    query.exec(
+        "CREATE TABLE IF NOT EXISTS chatroom ("
+        "c_id    INT PRIMARY KEY,"              // chatroom id
+        "c_name  VARCHAR(20) UNIQUE NOT NULL,"  // chatroom name
+        "c_u_id  INT NOT NULL,"                 // creator user id
+        "cr_t    DATETIME,"                     // creation time
+        "ds_t    DATETIME);"                    // dissolution time
+        );
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
         return false;
+    }
+
+    // 创建用户-聊天室关系表user_chatroom
+    query.exec(
+        "CREATE TABLE IF NOT EXISTS user_chatroom ("
+        "u_id    INT NOT NULL,"                 // user id
+        "c_id    INT NOT NULL,"                 // chatroom id
+        "j_t     DATETIME,"                     // join time
+        "q_t     DATETIME,"                     // quit time
+        "PRIMARY KEY(u_id, c_id),"
+        "FOREIGN KEY(u_id) REFERENCES user(u_id),"
+        "FOREIGN KEY(c_id) REFERENCES chatroom(c_id));"
+        );
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
+
+    // 创建消息表message
+    query.exec(
+        "CREATE TABLE IF NOT EXISTS message ("
+        "m_id    INT PRIMARY KEY,"              // message id
+        "m_u_id  INT NOT NULL,"                 // user id
+        "m_c_id  INT NOT NULL,"                 // chatroom id
+        "m_t     DATETIME,"                     // message time
+        "m_text  TEXT,"                         // message text
+        "FOREIGN KEY(m_u_id) REFERENCES user(u_id),"
+        "FOREIGN KEY(m_c_id) REFERENCES chatroom(c_id));"
+        );
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
 
     query.exec("SELECT MAX(u_id) FROM user;");
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
     if (query.next())
         maxUserNumber = query.value(0).toInt(); // 获取用户号最大值
 
     query.exec("SELECT MAX(c_id) FROM chatroom;");
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
     if (query.next())
         maxChatroomNumber = query.value(0).toInt(); // 获取聊天室号最大值
 
@@ -96,6 +144,10 @@ bool ServerCore::registerAccount(const QString &userName, const QString &passwor
 
     // 检查用户名是否已存在
     query.exec(QString("SELECT u_name FROM user WHERE u_name = '%1';").arg(userName));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
     if (query.next()) {
         qDebug() << "用户名已存在!";
         return false;
@@ -112,8 +164,11 @@ bool ServerCore::registerAccount(const QString &userName, const QString &passwor
             .arg("NULL");
 
     // 执行SQL语句
-    if (!query.exec(sql_statement))
+    query.exec(sql_statement);
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
         return false;
+    }
 
     // 更新界面显示的用户表
     userTableModel->select();
@@ -126,6 +181,10 @@ bool ServerCore::loginAccount(const QString &userName, const QString &password) 
 
     // 检查用户名是否已存在
     query.exec(QString("SELECT u_name FROM user WHERE u_name = '%1';").arg(userName));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
     query.next();
     if (query.value(0).toString().isEmpty()) {
         qDebug() << "用户名不存在!";
@@ -134,6 +193,10 @@ bool ServerCore::loginAccount(const QString &userName, const QString &password) 
 
     // 检查密码是否正确
     query.exec(QString("SELECT pw FROM user WHERE u_name = '%1';").arg(userName));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
     query.next();
     if (query.value(0).toString() != password) {
         qDebug() << "密码错误!";
@@ -148,6 +211,10 @@ bool ServerCore::createChatroom(const QString &chatroomName, const QString &user
 
     // 检查聊天室名是否已存在
     query.exec(QString("SELECT c_name FROM chatroom WHERE c_name = '%1';").arg(chatroomName));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
     if (query.next()) {
         qDebug() << "聊天室名已存在!";
         return false;
@@ -155,29 +222,91 @@ bool ServerCore::createChatroom(const QString &chatroomName, const QString &user
 
     // 检查用户名是否已存在
     query.exec(QString("SELECT u_id FROM user WHERE u_name = '%1';").arg(userName));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
     if (!query.next()) {
         qDebug() << "用户名不存在!";
         return false;
     }
 
-    // 插入新聊天室
-    QString sql_statement =
-            "INSERT INTO chatroom (c_id, c_name, c_u_id, cr_t, ds_t) VALUES " +
-            QString("(%1,'%2',%3,'%4',%5);")
-            .arg(++maxChatroomNumber)
-            .arg(chatroomName)
-            .arg(query.value(0).toInt())
-            .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
-            .arg("NULL");
+    int userID = query.value(0).toInt();
 
-    // 执行SQL语句
-    if (!query.exec(sql_statement))
+    // 插入新聊天室和新用户-聊天室关系，以事务的方式执行，保证原子性
+    query.exec("BEGIN;");
+    query.exec(QString(
+        "INSERT INTO chatroom (c_id, c_name, c_u_id, cr_t, ds_t) VALUES "
+        "(%1,'%2',%3,'%4',%5);")
+        .arg(++maxChatroomNumber)
+        .arg(chatroomName)
+        .arg(userID)
+        .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+        .arg("NULL"));
+    query.exec(QString(
+        "INSERT INTO user_chatroom (u_id, c_id, j_t, q_t) VALUES "
+        "(%1,%2,'%3',%4);")
+        .arg(userID)
+        .arg(maxChatroomNumber)
+        .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+        .arg("NULL"));
+    query.exec("COMMIT;");
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
         return false;
+    }
 
     // 更新界面显示的聊天室表
     chatTableModel->select();
 
     return true;
+}
+
+QJsonArray ServerCore::getJoinedChatList(const QString &userName) {
+    QJsonArray chatList;
+    QSqlQuery query;
+
+    // 查询该用户已加入的所有聊天室
+    query.exec(QString(
+        "SELECT c_name FROM user_chatroom "
+        "INNER JOIN chatroom ON user_chatroom.c_id = chatroom.c_id "
+        "INNER JOIN user ON user_chatroom.u_id = user.u_id "
+        "WHERE u_name = '%1';")
+        .arg(userName));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return chatList;
+    }
+
+    while (query.next()) {
+        chatList.append(query.value(0).toString());
+    }
+
+    return chatList;
+}
+
+QJsonArray ServerCore::getUnjoinedChatList(const QString &userName) {
+    QJsonArray chatList;
+    QSqlQuery query;
+
+    // 查询该用户未加入的所有聊天室
+    query.exec(QString(
+        "SELECT c_name FROM chatroom"
+        "WHERE c_id NOT IN ("
+        "SELECT c_id FROM user_chatroom"
+        "INNER JOIN user ON user_chatroom.u_id = user.u_id"
+        "WHERE u_name = '%1');")
+        .arg(userName));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return chatList;
+    }
+
+    while (query.next()) {
+        chatList.append(query.value(0).toString());
+    }
+
+    return chatList;
 }
 
 void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
@@ -260,6 +389,21 @@ void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
             sendJsonObj(socket, resJsonObj);
             return;
         }
+    } else if (type == "getChatList") {
+        QJsonArray joinedChatList = getJoinedChatList(dataObj["userName"].toString());
+        QJsonArray unjoinedChatList = getUnjoinedChatList(dataObj["userName"].toString());
+
+        qDebug() << "获取用户可访问的聊天室列表成功";
+        QJsonObject resJsonObj = baseJsonObj(type, "success");
+
+        // 编辑数据字段
+        QJsonObject resDataObj = resJsonObj["data"].toObject();
+        resDataObj["userName"] = dataObj["userName"].toString();
+        resDataObj["joinedChatList"] = joinedChatList;
+        resDataObj["unjoinedChatList"] = unjoinedChatList;
+        resJsonObj["data"] = resDataObj;
+
+        sendJsonObj(socket, resJsonObj);
     } else {
         qDebug() << "数据报文类型不正确!";
         return;

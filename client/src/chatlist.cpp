@@ -7,6 +7,15 @@ ChatList::ChatList(QWidget *parent) :
 
     // 获取核心实例
     core = &ClientCore::getInstance();
+
+    //设置该聊天窗口的标题-----用户名
+    this->setWindowTitle("当前用户：" + core->currentUserName);
+
+    // 从服务器上获取一次聊天室列表
+    core->getChatListRequest(core->currentUserName);
+
+    // 刷新列表
+    refreshChatList();
 }
 
 ChatList::~ChatList()
@@ -14,10 +23,15 @@ ChatList::~ChatList()
     delete ui;
 }
 
-void ChatList::initChatList()
+void ChatList::refreshChatList()
 {
-    //设置该聊天窗口的标题-----用户名
-    this->setWindowTitle("当前用户：" + core->currentUserName);
+    // 清空列表
+    ui->HJoinChatListWidget->clear();
+    ui->UJoinChatListWidget->clear();
+
+    // 更新列表
+    ui->HJoinChatListWidget->addItems(core->joinedList);
+    ui->UJoinChatListWidget->addItems(core->unjoinedList);
 }
 
 void ChatList::on_OpenChatButton_clicked()
@@ -41,7 +55,7 @@ void ChatList::on_JoinButton_clicked()
         QString chatName = ui->UJoinChatListWidget->currentItem()->text();
         qDebug()<<chatName;
         //将选中的聊天加入,并发送添加和更新信息
-        Joinlist<<chatName;
+        core->joinedList<<chatName;
         ui->HJoinChatListWidget->addItem(chatName);
     }
 }
@@ -51,18 +65,19 @@ void ChatList::on_NewChatButton_clicked()
     QString chatName = ui->ChatNameInput->text();
     if (chatName.length() > 0 && chatName.length() <= 20) {
         core->createChatroomRequest(ui->ChatNameInput->text(), core->currentUserName);
+        core->getChatListRequest(core->currentUserName);
+        refreshChatList();
     } else {
         QMessageBox::information(this,"群聊名有误","群聊名长度应在1~20个字符之间");
     }
-
 }
 
 void ChatList::on_SortChatButton_clicked()
 {
     //筛选，包含部分的都会筛选出来
     QString chatName = ui->ChatNameInput->text();
-    selectlist=UJoinlist.filter(chatName);
+    core->selectList=core->unjoinedList.filter(chatName);
     ui->UJoinChatListWidget->clear();
-    ui->UJoinChatListWidget->addItems(selectlist);
+    ui->UJoinChatListWidget->addItems(core->selectList);
     ui->UJoinChatListWidget->setCurrentRow(0);
 }

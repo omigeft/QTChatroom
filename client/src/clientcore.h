@@ -20,6 +20,8 @@ public:
 
     bool createChatroomRequest(const QString &chatName, const QString &creatorName);
 
+    bool getChatListRequest(const QString &userName);
+
 private:
     ClientCore(); // 私有构造函数，确保单例
 
@@ -35,6 +37,10 @@ public:
     quint16 serverPort;         // 服务器端口
 
     QString currentUserName;    // 当前登录的用户名
+
+    QStringList joinedList;
+    QStringList unjoinedList;
+    QStringList selectList;
 };
 
 

@@ -34,7 +34,6 @@ void LoginWindow::on_LoginButton_clicked()
         //切换到用户列表
         ChatList * userChatList = new ChatList();
         this->close();
-        userChatList->initChatList();
         userChatList->show();
     }
 }

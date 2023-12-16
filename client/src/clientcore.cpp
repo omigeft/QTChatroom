@@ -79,8 +79,8 @@ bool ClientCore::connectServer(const QHostAddress &address, const quint16 &port)
 }
 
 bool ClientCore::registerRequest(const QString &userName, const QString &password) {
-    // 检查用户名和密码是否在6-20个字符之间
-    if (userName.length() < 6 || userName.length() > 20) {
+    // 检查用户名和密码是否在1-20个字符之间
+    if (userName.length() < 1 || userName.length() > 20) {
         qDebug() << "用户名长度不符合要求!";
         return false;
     }
@@ -233,6 +233,58 @@ bool ClientCore::createChatroomRequest(const QString &chatName, const QString &c
         }
 
         qDebug() << "收到响应：创建聊天室成功";
+
+    } else {
+        qDebug() << "未能接收到服务端响应";
+        return false;
+    }
+
+    return true;
+}
+
+bool ClientCore::getChatListRequest(const QString &userName) {
+    QJsonObject jsonObj = baseJsonObj("getChatList", "request");
+
+    // 编辑数据字段
+    QJsonObject dataObj = jsonObj["data"].toObject();
+    dataObj["userName"] = userName;
+    jsonObj["data"] = dataObj;
+
+    sendJsonObj(jsonObj);
+
+    // 等待数据接收
+    if (socket.waitForReadyRead(3000)) {
+        // 读取服务端的响应
+        QString response = QString::fromUtf8(socket.readAll());
+        qDebug() << "收到服务端消息：" << response;
+
+        if (!checkResponseMessage(response, jsonObj["type"].toString())) {
+            return false;
+        }
+
+        QJsonDocument resJsonDoc = QJsonDocument::fromJson(response.toUtf8());
+        QJsonObject resJsonObj = resJsonDoc.object();
+        QJsonObject resDataObj = resJsonObj["data"].toObject();
+
+        if (resDataObj["userName"].toString() != userName) {
+            qDebug() << "收到响应：用户名不匹配";
+            return false;
+        }
+
+        // 获取聊天室列表
+        QJsonArray joinedChatList = resDataObj["joinedChatList"].toArray();
+        joinedList.clear();
+        for (int i = 0; i < joinedChatList.size(); ++i) {
+            joinedList.append(joinedChatList[i].toString());
+        }
+
+        QJsonArray unjoinedChatList = resDataObj["unjoinedChatList"].toArray();
+        unjoinedList.clear();
+        for (int i = 0; i < unjoinedChatList.size(); ++i) {
+            unjoinedList.append(unjoinedChatList[i].toString());
+        }
+
+        qDebug() << "收到响应：获取用户可访问的聊天室列表成功";
 
     } else {
         qDebug() << "未能接收到服务端响应";
