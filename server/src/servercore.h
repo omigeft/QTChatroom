@@ -27,6 +27,8 @@ public:
 
     bool createChatroom(const QString &chatroomName, const QString &userName);
 
+    bool joinChatroom(const QString &chatroomName, const QString &userName);
+
     QJsonArray getJoinedChatList(const QString &userName);
 
     QJsonArray getUnjoinedChatList(const QString &userName);

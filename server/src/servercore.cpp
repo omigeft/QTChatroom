@@ -221,7 +221,7 @@ bool ServerCore::createChatroom(const QString &chatroomName, const QString &user
     QSqlQuery query;
 
     // 检查聊天室名是否已存在
-    query.exec(QString("SELECT c_name FROM chatroom WHERE c_name = '%1';").arg(chatroomName));
+    query.exec(QString("SELECT c_id FROM chatroom WHERE c_name = '%1';").arg(chatroomName));
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
         return false;
@@ -269,6 +269,52 @@ bool ServerCore::createChatroom(const QString &chatroomName, const QString &user
 
     // 更新界面显示的聊天室表
     chatTableModel->select();
+
+    return true;
+}
+
+
+bool ServerCore::joinChatroom(const QString &chatroomName, const QString &userName) {
+    QSqlQuery query;
+
+    // 检查聊天室名是否已存在
+    query.exec(QString("SELECT c_id FROM chatroom WHERE c_name = '%1';").arg(chatroomName));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
+    if (!query.next()) {
+        qDebug() << "聊天室名不存在!";
+        return false;
+    }
+
+    int chatroomID = query.value(0).toInt();
+
+    // 检查用户名是否已存在
+    query.exec(QString("SELECT u_id FROM user WHERE u_name = '%1';").arg(userName));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
+    if (!query.next()) {
+        qDebug() << "用户名不存在!";
+        return false;
+    }
+
+    int userID = query.value(0).toInt();
+
+    // 插入新用户-聊天室关系
+    query.exec(QString(
+        "INSERT INTO user_chatroom (u_id, c_id, j_t, q_t) VALUES "
+        "(%1,%2,'%3',%4);")
+        .arg(userID)
+        .arg(chatroomID)
+        .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+        .arg("NULL"));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
 
     return true;
 }
@@ -525,6 +571,24 @@ void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
             sendJsonObj(socket, resJsonObj);
         } else {
             qDebug() << "创建聊天室失败";
+            QJsonObject resJsonObj = baseJsonObj(type, "failed");
+            sendJsonObj(socket, resJsonObj);
+            return;
+        }
+    } else if (type == "joinChatroom") {
+        if (joinChatroom(dataObj["chatName"].toString(), dataObj["userName"].toString())) {
+            qDebug() << "加入聊天室成功";
+            QJsonObject resJsonObj = baseJsonObj(type, "success");
+
+            // 编辑数据字段
+            QJsonObject resDataObj = resJsonObj["data"].toObject();
+            resDataObj["chatName"] = dataObj["chatName"].toString();
+            resDataObj["userName"] = dataObj["userName"].toString();
+            resJsonObj["data"] = resDataObj;
+
+            sendJsonObj(socket, resJsonObj);
+        } else {
+            qDebug() << "加入聊天室失败";
             QJsonObject resJsonObj = baseJsonObj(type, "failed");
             sendJsonObj(socket, resJsonObj);
             return;

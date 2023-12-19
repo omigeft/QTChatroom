@@ -208,6 +208,48 @@ bool ClientCore::createChatroomRequest(const QString &chatName, const QString &c
     return true;
 }
 
+bool ClientCore::joinChatroomRequest(const QString &chatName, const QString &userName) {
+    // 检查聊天室名称是否在1-20个字符之间
+    if (chatName.length() < 1 || chatName.length() > 20) {
+        qDebug() << "聊天室名称长度不符合要求!";
+        return false;
+    }
+
+    QJsonObject jsonObj = baseJsonObj("joinChatroom", "request");
+
+    // 编辑数据字段
+    QJsonObject dataObj = jsonObj["data"].toObject();
+    dataObj["chatName"] = chatName;
+    dataObj["userName"] = userName;
+    jsonObj["data"] = dataObj;
+
+    QString response;
+
+    // 等待数据接收
+    if (sendAndWait(response, jsonObj)) {
+        if (!checkMessage(response, jsonObj["type"].toString(), "success")) {
+            return false;
+        }
+
+        QJsonDocument resJsonDoc = QJsonDocument::fromJson(response.toUtf8());
+        QJsonObject resJsonObj = resJsonDoc.object();
+        QJsonObject resDataObj = resJsonObj["data"].toObject();
+
+        if (resDataObj["chatName"].toString() != chatName) {
+            qDebug() << "收到响应：聊天室名称不匹配";
+            return false;
+        }
+
+        qDebug() << "收到响应：加入聊天室成功";
+
+    } else {
+        qDebug() << "未能接收到服务端响应";
+        return false;
+    }
+
+    return true;
+}
+
 bool ClientCore::getChatListRequest(const QString &userName) {
     QJsonObject jsonObj = baseJsonObj("getChatList", "request");
 
@@ -434,7 +476,7 @@ bool ClientCore::checkMessage(const QString &message, const QString &type, const
     QJsonObject resJsonObj = resJsonDoc.object();
 
     if (resJsonObj["type"].toString() != type) {
-        qDebug() << "响应数据报文类型" << resJsonObj["type"].toString() << "!=" << type << "，非同步提醒请求";
+//        qDebug() << "响应数据报文类型" << resJsonObj["type"].toString() << "!=" << type << "，不是同步提醒请求";
         return false;
     }
 

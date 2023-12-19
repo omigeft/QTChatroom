@@ -53,10 +53,8 @@ void ChatList::on_JoinButton_clicked()
     if(ui->UJoinChatListWidget->count()>0)
     {
         QString chatName = ui->UJoinChatListWidget->currentItem()->text();
-        qDebug()<<chatName;
-        //将选中的聊天加入,并发送添加和更新信息
-        core->joinedList<<chatName;
-        ui->HJoinChatListWidget->addItem(chatName);
+        core->joinChatroomRequest(chatName, core->currentUserName);
+        refreshChatList();
     }
 }
 
@@ -64,7 +62,7 @@ void ChatList::on_NewChatButton_clicked()
 {
     QString chatName = ui->ChatNameInput->text();
     if (chatName.length() > 0 && chatName.length() <= 20) {
-        core->createChatroomRequest(ui->ChatNameInput->text(), core->currentUserName);
+        core->createChatroomRequest(chatName, core->currentUserName);
         refreshChatList();
     } else {
         QMessageBox::information(this,"群聊名有误","群聊名长度应在1~20个字符之间");
