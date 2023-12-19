@@ -19,7 +19,7 @@ Chat::Chat(const QString &chatName, QWidget *parent) :
 
     latestMessageID = 0;
 
-    refreshChat();
+    //refreshChat();
 //    // 每隔3秒刷新一次聊天室
 //    QTimer *timer = new QTimer(this);
 //    timer->setInterval(3000);  // 设置间隔为3000毫秒，即3秒
@@ -94,5 +94,5 @@ void Chat::on_SendButton_clicked()
 
     // 发送消息
     core->sendMessageRequest(currentChatName, core->currentUserName, message);
-    refreshChat();
+    //refreshChat();
 }

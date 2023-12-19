@@ -44,6 +44,7 @@ void ChatList::on_OpenChatButton_clicked()
         //打开聊天界面
         Chat * userChat = new Chat(chatName);
         userChat->show();
+        core->nameChatMap.insert(chatName, userChat);
     }
 }
 

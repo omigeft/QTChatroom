@@ -4,8 +4,14 @@
 #include <QtNetwork>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QEventLoop>
+
+class Chat;
+
 class ClientCore : public QObject
 {
+    Q_OBJECT
+
 public:
     static ClientCore& getInstance() {
         static ClientCore instance; // 单例对象
@@ -28,14 +34,22 @@ public:
 
     bool sendMessageRequest(const QString &chatName, const QString &senderName, const QString &message);
 
+signals:
+    void readMessage(const QString &message);
+
+private slots:
+    void onReadyRead();
+
 private:
     ClientCore(); // 私有构造函数，确保单例
 
-    bool checkResponseMessage(const QString &message, const QString &type);
+    bool checkMessage(const QString &message, const QString &type, const QString &state);
 
     QJsonObject baseJsonObj(const QString &type, const QString &state);
 
     void sendJsonObj(const QJsonObject &jsonObj);
+
+    bool sendAndWait(QString &response, const QJsonObject &jsonObj);
 
 public:
     QTcpSocket socket;          // 套接字
@@ -47,6 +61,8 @@ public:
     QStringList joinedList;
     QStringList unjoinedList;
     QStringList selectList;
+
+    QMap<QString, Chat*> nameChatMap; // 打开的聊天室的聊天室名与窗口实例的映射
 };
 
 

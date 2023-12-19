@@ -184,7 +184,7 @@ bool ServerCore::registerAccount(const QString &userName, const QString &passwor
     return true;
 }
 
-bool ServerCore::loginAccount(const QString &userName, const QString &password) {
+bool ServerCore::loginAccount(QTcpSocket *socket, const QString &userName, const QString &password) {
     QSqlQuery query;
 
     // 检查用户名是否已存在
@@ -210,6 +210,9 @@ bool ServerCore::loginAccount(const QString &userName, const QString &password) 
         qDebug() << "密码错误!";
         return false;
     }
+
+    // 该账号与该连接绑定
+    userSocketMap.insert(userName, socket);
 
     return true;
 }
@@ -416,6 +419,29 @@ bool ServerCore::sendMessage(const QString &chatName, const QString &senderName,
         return false;
     }
 
+    synchronizationRemind(chatName);
+
+    return true;
+}
+
+bool ServerCore::synchronizationRemind(const QString &chatName) {
+    // 发送同步提醒消息，提醒聊天室中所有在线用户更新信息
+    QJsonObject remindJsonObj = baseJsonObj("synchronization", "remind");
+
+    // 编辑数据字段
+    QJsonObject dataObj;
+    dataObj["chatName"] = chatName;
+    remindJsonObj["data"] = dataObj;
+
+    // 发送消息给该聊天室的在线用户（从数据库中选出该聊天室用户，再用userSocketMap尝试发送）
+    QJsonArray userList = getChatUserList(chatName);
+    for (int i = 0; i < userList.size(); i++) {
+        QString userName = userList.at(i).toString();
+        if (userSocketMap.contains(userName)) {
+            sendJsonObj(userSocketMap[userName], remindJsonObj);
+        }
+    }
+
     return true;
 }
 
@@ -466,7 +492,7 @@ void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
             return;
         }
     } else if (type == "login") {
-        if (loginAccount(dataObj["userName"].toString(), dataObj["password"].toString())) {
+        if (loginAccount(socket, dataObj["userName"].toString(), dataObj["password"].toString())) {
             qDebug() << "用户登录成功";
             QJsonObject resJsonObj = baseJsonObj(type, "success");
 

@@ -8,6 +8,8 @@
 
 class ServerCore : public QObject
 {
+    Q_OBJECT
+
 public:
     static ServerCore& getInstance() {
         static ServerCore instance; // 单例对象
@@ -21,7 +23,7 @@ public:
 
     bool registerAccount(const QString &userName, const QString &password);
 
-    bool loginAccount(const QString &userName, const QString &password);
+    bool loginAccount(QTcpSocket *socket, const QString &userName, const QString &password);
 
     bool createChatroom(const QString &chatroomName, const QString &userName);
 
@@ -34,6 +36,8 @@ public:
     QJsonArray getMessage(const QString &chatName, const int latestMessageID);
 
     bool sendMessage(const QString &chatName, const QString &senderName, const QString &message);
+
+    bool synchronizationRemind(const QString &chatName);
 
 private slots:
     void onReceiveMessage(QTcpSocket *socket, const QString &message);
@@ -55,6 +59,8 @@ public:
     QSqlDatabase db;                // 数据库
     QSqlTableModel* userTableModel;
     QSqlTableModel* chatTableModel;
+
+    QMap<QString, QTcpSocket*> userSocketMap; // 用户名与socket的映射
 
 private:
     int maxUserNumber;              // 用于计数累计用户数量，从而确定新建u_id
