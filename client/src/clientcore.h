@@ -34,6 +34,8 @@ public:
 
     bool sendMessageRequest(const QString &chatName, const QString &senderName, const QString &message);
 
+    void processReadMessage(const QString &message);
+
 signals:
     void readMessage(const QString &message);
 

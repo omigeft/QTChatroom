@@ -370,11 +370,8 @@ bool ClientCore::sendMessageRequest(const QString &chatName, const QString &send
     }
 }
 
-void ClientCore::onReadyRead() {
-    // 读取服务端的消息
-    QString message = QString::fromUtf8(socket.readAll());
-
-    qDebug() << "onReadyRead()收到服务端消息：" << message;
+void ClientCore::processReadMessage(const QString &message) {
+    qDebug() << "收到服务端消息：" << message;
 
     emit readMessage(message);
 
@@ -398,6 +395,28 @@ void ClientCore::onReadyRead() {
     nameChatMap[chatName]->refreshChat();
 }
 
+void ClientCore::onReadyRead() {
+    // 读取服务端的消息
+    QString message = QString::fromUtf8(socket.readAll());
+
+    // 如果包含多个报文，需要分割
+    QStringList messageList = message.split("}{");
+
+    for (int i = 0; i < messageList.size(); i++) {
+        // 如果不是第一个报文，需要加上 {
+        if (i != 0) {
+            messageList[i] = "{" + messageList[i];
+        }
+
+        // 如果不是最后一个报文，需要加上 }
+        if (i != messageList.size() - 1) {
+            messageList[i] = messageList[i] + "}";
+        }
+
+        processReadMessage(messageList[i]);
+    }
+}
+
 ClientCore::ClientCore() {
     // 收到服务器消息的信号槽连接
     connect(&socket, &QTcpSocket::readyRead, this, &ClientCore::onReadyRead);
@@ -415,7 +434,7 @@ bool ClientCore::checkMessage(const QString &message, const QString &type, const
     QJsonObject resJsonObj = resJsonDoc.object();
 
     if (resJsonObj["type"].toString() != type) {
-        qDebug() << "响应数据报文类型不正确!" << resJsonObj["type"].toString() << "!=" << type;
+        qDebug() << "响应数据报文类型" << resJsonObj["type"].toString() << "!=" << type << "，非同步提醒请求";
         return false;
     }
 
@@ -448,7 +467,6 @@ void ClientCore::sendJsonObj(const QJsonObject &jsonObj) {
 }
 
 bool ClientCore::sendAndWait(QString &response, const QJsonObject &jsonObj) {
-//    qDebug() << "dbg0  " << response;
     QTimer timer;
     QEventLoop loop;
     bool readFlag = false;  // 区分是否在规定时间内接收到数据的标志

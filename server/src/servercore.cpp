@@ -419,12 +419,12 @@ bool ServerCore::sendMessage(const QString &chatName, const QString &senderName,
         return false;
     }
 
-    synchronizationRemind(chatName);
+    synchronizationRemind(chatName, senderName);
 
     return true;
 }
 
-bool ServerCore::synchronizationRemind(const QString &chatName) {
+bool ServerCore::synchronizationRemind(const QString &chatName, const QString &senderName) {
     // 发送同步提醒消息，提醒聊天室中所有在线用户更新信息
     QJsonObject remindJsonObj = baseJsonObj("synchronization", "remind");
 
@@ -435,8 +435,12 @@ bool ServerCore::synchronizationRemind(const QString &chatName) {
 
     // 发送消息给该聊天室的在线用户（从数据库中选出该聊天室用户，再用userSocketMap尝试发送）
     QJsonArray userList = getChatUserList(chatName);
+    qDebug() << "发送同步提醒报文：" << userList;
     for (int i = 0; i < userList.size(); i++) {
         QString userName = userList.at(i).toString();
+        if (userName == senderName) {   // 不给消息发送者发送同步提醒
+            continue;
+        }
         if (userSocketMap.contains(userName)) {
             sendJsonObj(userSocketMap[userName], remindJsonObj);
         }

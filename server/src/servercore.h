@@ -37,7 +37,7 @@ public:
 
     bool sendMessage(const QString &chatName, const QString &senderName, const QString &message);
 
-    bool synchronizationRemind(const QString &chatName);
+    bool synchronizationRemind(const QString &chatName, const QString &senderName);
 
 private slots:
     void onReceiveMessage(QTcpSocket *socket, const QString &message);
