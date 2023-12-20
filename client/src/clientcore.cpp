@@ -433,7 +433,7 @@ void ClientCore::processReadMessage(const QString &message) {
     // 获取聊天室名称
     QString chatName = resDataObj["chatName"].toString();
 
-    // 被提醒，表示有新消息，需要更新消息列表（使用映射QMap<QString, Chat*> nameChatMap）
+    // 被提醒，表示有新消息，需要更新消息列表
     nameChatMap[chatName]->refreshChat();
 }
 
@@ -520,7 +520,7 @@ bool ClientCore::sendAndWait(QString &response, const QJsonObject &jsonObj) {
         loop.quit();
     });
 
-    timer.start(3000);
+    timer.start(10000);
     sendJsonObj(jsonObj);
     loop.exec();
 

@@ -3,6 +3,14 @@
 Server::Server(QObject *parent)
     : QTcpServer(parent) {}
 
+void Server::sendMessage(QTcpSocket *socket, const QString &message) {
+    QByteArray data = message.toUtf8();
+    mutex.lock();
+    socket->write(data);
+    socket->flush();
+    mutex.unlock();
+}
+
 void Server::incomingConnection(qintptr socketDescriptor)
 {
     // 创建一个新的TcpSocket来处理连接
@@ -10,8 +18,9 @@ void Server::incomingConnection(qintptr socketDescriptor)
     if (clientSocket->setSocketDescriptor(socketDescriptor))
     {
         this->addPendingConnection(clientSocket);
-        connect(clientSocket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
-        connect(clientSocket, SIGNAL(disconnected()), clientSocket, SLOT(deleteLater()));
+        connect(clientSocket, &QTcpSocket::readyRead, this, &Server::onReadyRead);
+        connect(clientSocket, &QTcpSocket::bytesWritten, this, &Server::onBytesWritten);
+        connect(clientSocket, &QTcpSocket::disconnected, clientSocket, &QTcpSocket::deleteLater);
     }
     else
     {
@@ -29,4 +38,10 @@ void Server::onReadyRead()
         qDebug() << "收到数据:" << dataString;
         emit receiveMessage(clientSocket, dataString);
     }
+}
+
+void Server::onBytesWritten(qint64 bytes)
+{
+    QTcpSocket *clientSocket = qobject_cast<QTcpSocket *>(sender());
+    qDebug() << "发送数据:" << bytes << "字节";
 }

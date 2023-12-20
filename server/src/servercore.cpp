@@ -273,7 +273,6 @@ bool ServerCore::createChatroom(const QString &chatroomName, const QString &user
     return true;
 }
 
-
 bool ServerCore::joinChatroom(const QString &chatroomName, const QString &userName) {
     QSqlQuery query;
 
@@ -471,6 +470,7 @@ bool ServerCore::sendMessage(const QString &chatName, const QString &senderName,
 }
 
 bool ServerCore::synchronizationRemind(const QString &chatName, const QString &senderName) {
+    return true;
     // 发送同步提醒消息，提醒聊天室中所有在线用户更新信息
     QJsonObject remindJsonObj = baseJsonObj("synchronization", "remind");
 
@@ -634,6 +634,7 @@ void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
         resJsonObj["data"] = resDataObj;
 
         sendJsonObj(socket, resJsonObj);
+        qDebug() << "已发送聊天室消息到ip地址和端口" << socket->peerAddress().toString() << socket->peerPort();
     } else if (type == "sendMessage") {
         if (sendMessage(dataObj["chatName"].toString(), dataObj["senderName"].toString(), dataObj["message"].toString())) {
             qDebug() << "发送消息成功";
@@ -688,5 +689,7 @@ void ServerCore::sendJsonObj(QTcpSocket *socket, const QJsonObject &jsonObj) {
     // 使用 QJsonDocument 生成 JSON 字符串，并发送报文
     QJsonDocument jsonDoc(jsonObj);
     QString message = jsonDoc.toJson(QJsonDocument::Compact);
-    socket->write(message.toUtf8());
+//    qDebug() << "发送报文到ip地址和端口" << socket->peerAddress().toString() << socket->peerPort();
+//    qDebug() << socket->write(message.toUtf8());
+    server.sendMessage(socket, message);
 }

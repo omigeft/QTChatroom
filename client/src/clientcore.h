@@ -41,6 +41,8 @@ public:
 signals:
     void readMessage(const QString &message);
 
+    void remindSignal(const QString &chatName);
+
 private slots:
     void onReadyRead();
 
