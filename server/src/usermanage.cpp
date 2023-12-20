@@ -1,11 +1,39 @@
 #include "usermanage.h"
 #include "ui_usermanage.h"
 #include <QMessageBox>
-UserManage::UserManage(QWidget *parent) :
+UserManage::UserManage(const QString &name, const QString &id, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::UserManage)
 {
     ui->setupUi(this);
+
+    Roomname = name;
+    RoomID = id;
+    ui->ChatName->setText("聊天名称:"+name);
+    ui->ChatID->setText("聊天ID:"+id);
+
+    QSqlQuery query;
+    query.exec(QString(
+        "CREATE VIEW IF NOT EXISTS chat_user_%1 AS "
+        "SELECT u.u_id, u.u_name, j_t, uc.role FROM user_chatroom uc "
+        "JOIN user u ON uc.u_id = u.u_id "
+        "WHERE uc.c_id = %1;"
+        ).arg(RoomID));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return;
+    }
+
+    chatUserTableModel = new QSqlTableModel(this);
+    chatUserTableModel->setTable(QString("chat_user_%1").arg(RoomID));
+    chatUserTableModel->select();
+    chatUserTableModel->setHeaderData(0, Qt::Horizontal, "用户ID");
+    chatUserTableModel->setHeaderData(1, Qt::Horizontal, "用户名");
+    chatUserTableModel->setHeaderData(2, Qt::Horizontal, "加入时间");
+    chatUserTableModel->setHeaderData(3, Qt::Horizontal, "群聊中角色");
+
+    ui->UserTable->setModel(chatUserTableModel);
+
     //伴随父窗口关闭
 //    setAttribute(Qt::WA_QuitOnClose,false);
 //    //不允许通过其他方式修改
@@ -25,13 +53,6 @@ UserManage::UserManage(QWidget *parent) :
 UserManage::~UserManage()
 {
     delete ui;
-}
-void UserManage::init(QString name,QString id)
-{
-    Roomname = name;
-    RoomID = id;
-    ui->ChatName->setText("聊天名称:"+name);
-    ui->ChatID->setText("聊天ID:"+id);
 }
 
 void UserManage::on_ChangeButton_clicked()
@@ -69,7 +90,7 @@ void UserManage::on_FindButton_clicked()
 //         ui->UserTable->setRowHidden(findItemsList.at(i)->row(),false);//回复对应的行，也可以回复列
 //    }
 }
-void UserManage::insertUserIitem(int row,int column,QString content)
+void UserManage::insertUserIitem(int row, int column, const QString &content)
 {
 //    ui->UserTable->setItem(row,column,new QTableWidgetItem(content));
 }

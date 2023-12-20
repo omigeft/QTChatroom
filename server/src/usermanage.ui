@@ -101,6 +101,13 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>ContentInput</tabstop>
+  <tabstop>ChangeButton</tabstop>
+  <tabstop>DeleteButton</tabstop>
+  <tabstop>FindButton</tabstop>
+  <tabstop>UserTable</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -256,6 +256,7 @@ bool ServerCore::registerAccount(const QString &userName, const QString &passwor
     // 执行SQL语句
     query.exec(sql_statement);
     if (query.lastError().isValid()) {
+        --maxUserNumber;
         qDebug() << query.lastError();
         return false;
     }
@@ -347,6 +348,7 @@ bool ServerCore::createChatroom(const QString &chatroomName, const QString &user
         .arg("root"));
     query.exec("COMMIT;");
     if (query.lastError().isValid()) {
+        --maxChatroomNumber;
         qDebug() << query.lastError();
         return false;
     }
@@ -547,6 +549,7 @@ bool ServerCore::sendMessage(const QString &chatName, const QString &senderName,
         .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
         .arg(message));
     if (query.lastError().isValid()) {
+        --maxMessageNumber;
         qDebug() << query.lastError();
         return false;
     }

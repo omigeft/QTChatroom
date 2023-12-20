@@ -94,6 +94,12 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>ContentInput</tabstop>
+  <tabstop>FindButton</tabstop>
+  <tabstop>DeleteButton</tabstop>
+  <tabstop>MessageTable</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -125,18 +125,42 @@ void AdminManagement::on_DeleteButton_2_clicked()
 
 void AdminManagement::on_ManageUserButton_clicked()
 {
-    //确保id和name都有item存在，否则会异常
-//    int curRow=ui->ChatTable->currentRow();
-//    UserManage * usermanage = new UserManage;
-//    usermanage->init(ui->ChatTable->item(curRow,1)->text(),ui->ChatTable->item(curRow,0)->text());
-//    usermanage->show();
+    QItemSelectionModel *selectionModel = ui->ChatTable->selectionModel();
+    QModelIndexList selectedRows = selectionModel->selectedRows();
+    if (selectedRows.isEmpty()) {
+        QMessageBox::warning(this, "警告", "请先选择一个群聊");
+        return;
+    }
+    if (selectedRows.size() > 1) {
+        QMessageBox::warning(this, "警告", "只能同时选择一个群聊");
+        return;
+    }
+    int rowIndex = selectedRows.first().row();
+    QModelIndex index_0 = ui->ChatTable->model()->index(rowIndex, 0);
+    QString chatid = ui->ChatTable->model()->data(index_0).toString();
+    QModelIndex index_1 = ui->ChatTable->model()->index(rowIndex, 1);
+    QString chatname = ui->ChatTable->model()->data(index_1).toString();
+    UserManage * usermanage = new UserManage(chatname, chatid);
+    usermanage->show();
 }
 
 void AdminManagement::on_ManageChatButton_clicked()
 {
-    //确保id和name都有item存在，否则会异常
-//    int curRow=ui->ChatTable->currentRow();
-//    MessageManage * messagemanage = new MessageManage;
-//    messagemanage->init(ui->ChatTable->item(curRow,1)->text(),ui->ChatTable->item(curRow,0)->text());
-//    messagemanage->show();
+    QItemSelectionModel *selectionModel = ui->ChatTable->selectionModel();
+    QModelIndexList selectedRows = selectionModel->selectedRows();
+    if (selectedRows.isEmpty()) {
+        QMessageBox::warning(this, "警告", "请先选择一个群聊");
+        return;
+    }
+    if (selectedRows.size() > 1) {
+        QMessageBox::warning(this, "警告", "只能同时选择一个群聊");
+        return;
+    }
+    int rowIndex = selectedRows.first().row();
+    QModelIndex index_0 = ui->ChatTable->model()->index(rowIndex, 0);
+    QString chatid = ui->ChatTable->model()->data(index_0).toString();
+    QModelIndex index_1 = ui->ChatTable->model()->index(rowIndex, 1);
+    QString chatname = ui->ChatTable->model()->data(index_1).toString();
+    MessageManage * messagemanage = new MessageManage(chatname, chatid);
+    messagemanage->show();
 }

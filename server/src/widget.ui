@@ -176,6 +176,14 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>IPInput</tabstop>
+  <tabstop>PortInput</tabstop>
+  <tabstop>AdminInput</tabstop>
+  <tabstop>PassWordInput</tabstop>
+  <tabstop>LoginButton</tabstop>
+  <tabstop>CloseButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
