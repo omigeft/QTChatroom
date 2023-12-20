@@ -1,6 +1,11 @@
 #include "servercore.h"
 
-bool ServerCore::createServer(QHostAddress address, quint16 port) {
+bool ServerCore::createServer(const QHostAddress &address, quint16 port, const QString &rootUserName, const QString &password) {
+    if (!createDatabase(rootUserName, password)) {
+        qDebug() << "Database connection failed!";
+        return false;
+    }
+
     // 检查格式是否正确
     if(!address.isNull() && port > 0) {
         qDebug() << "正在创建服务端...";
@@ -16,15 +21,10 @@ bool ServerCore::createServer(QHostAddress address, quint16 port) {
     serverPort = port;
     qDebug() << "Server listen on " << serverAddress.toString() << ":" << serverPort;
 
-    if (!createDatabase()) {
-        qDebug() << "Database connection failed!";
-        return false;
-    }
-
     return true;
 }
 
-bool ServerCore::createDatabase() {
+bool ServerCore::createDatabase(const QString &rootUserName, const QString &password) {
     // 创建数据库（设置引擎）
     db = QSqlDatabase::addDatabase("QSQLITE");
     // 获取当前工作目录
@@ -45,7 +45,8 @@ bool ServerCore::createDatabase() {
         "u_name  VARCHAR(20) UNIQUE NOT NULL,"  // user name
         "pw      VARCHAR(20) NOT NULL,"         // password
         "su_t    DATETIME,"                     // sign up time
-        "sd_t    DATETIME);"                    // sign down time
+        "sd_t    DATETIME,"                     // sign down time
+        "role    VARCHAR(5) NOT NULL);"         // user role ('root', 'admin', 'user')
         );
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
@@ -73,6 +74,7 @@ bool ServerCore::createDatabase() {
         "c_id    INT NOT NULL,"                 // chatroom id
         "j_t     DATETIME,"                     // join time
         "q_t     DATETIME,"                     // quit time
+        "role    VARCHAR(5) NOT NULL,"          // user role in chatroom ("root", "admin", "user")
         "PRIMARY KEY(u_id, c_id),"
         "FOREIGN KEY(u_id) REFERENCES user(u_id),"
         "FOREIGN KEY(c_id) REFERENCES chatroom(c_id));"
@@ -96,6 +98,84 @@ bool ServerCore::createDatabase() {
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
         return false;
+    }
+
+    // 创建触发器，限制用户名长度
+    query.exec(
+        "CREATE TRIGGER IF NOT EXISTS check_u_name_length "
+        "BEFORE INSERT ON user "
+        "FOR EACH ROW "
+        "WHEN LENGTH(NEW.u_name) < 1 OR LENGTH(NEW.u_name) > 20 "
+        "BEGIN "
+        "   SELECT RAISE(FAIL, 'u_name must be between 1 and 20 characters'); "
+        "END; "
+        );
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
+
+    // 创建触发器，限制密码长度
+    query.exec(
+        "CREATE TRIGGER IF NOT EXISTS check_pw_length "
+        "BEFORE INSERT ON user "
+        "FOR EACH ROW "
+        "WHEN LENGTH(NEW.pw) < 6 OR LENGTH(NEW.pw) > 20 "
+        "BEGIN "
+        "   SELECT RAISE(FAIL, 'pw must be between 6 and 20 characters'); "
+        "END; "
+        );
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
+
+    // 创建触发器强制要求密码包含数字、字母
+    query.exec(
+        "CREATE TRIGGER IF NOT EXISTS check_pw_format "
+        "BEFORE INSERT ON user "
+        "FOR EACH ROW "
+        "WHEN NEW.pw NOT GLOB '*[0-9]*' OR NEW.pw NOT GLOB '*[a-zA-Z]*' "
+        "BEGIN "
+        "   SELECT RAISE(FAIL, 'pw must contain at least one number and one letter'); "
+        "END; "
+        );
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
+
+    // 创建触发器，限制用户角色
+    query.exec(
+        "CREATE TRIGGER IF NOT EXISTS check_role_value "
+        "BEFORE INSERT ON user "
+        "FOR EACH ROW "
+        "WHEN NEW.role NOT IN ('root', 'admin', 'user') "
+        "BEGIN "
+        "   SELECT RAISE(FAIL, 'role must be one of: root, admin, user'); "
+        "END; "
+        );
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
+
+    // 如果不存在超级管理员，则创建超级管理员账号(role="root")
+    if (registerAccount(rootUserName, password, "root")) {
+        qDebug() << "超级管理员账号创建成功!";
+    } else {
+        // 若存在超级管理员，验证密码是否正确
+        query.exec(QString("SELECT * FROM user WHERE u_name='%1' AND pw='%2' AND role='root';")
+            .arg(rootUserName)
+            .arg(password));
+        if (query.lastError().isValid()) {
+            qDebug() << query.lastError();
+            return false;
+        }
+        if (!query.next()) {
+            qDebug() << "超级管理员创建失败或账号密码错误!";
+            return false;
+        }
     }
 
     query.exec("SELECT MAX(u_id) FROM user;");
@@ -132,6 +212,7 @@ bool ServerCore::createDatabase() {
     userTableModel->setHeaderData(2, Qt::Horizontal, "密码");
     userTableModel->setHeaderData(3, Qt::Horizontal, "注册时间");
     userTableModel->setHeaderData(4, Qt::Horizontal, "注销时间");
+    userTableModel->setHeaderData(5, Qt::Horizontal, "用户角色");
 
     chatTableModel = new QSqlTableModel;
     chatTableModel->setTable("chatroom"); // 替换为你的表名
@@ -147,7 +228,7 @@ bool ServerCore::createDatabase() {
     return true;
 }
 
-bool ServerCore::registerAccount(const QString &userName, const QString &password) {
+bool ServerCore::registerAccount(const QString &userName, const QString &password, const QString &role) {
     QSqlQuery query;
 
     // 检查用户名是否已存在
@@ -163,13 +244,14 @@ bool ServerCore::registerAccount(const QString &userName, const QString &passwor
 
     // 插入新用户
     QString sql_statement =
-            "INSERT INTO user (u_id, u_name, pw, su_t, sd_t) VALUES " +
-            QString("(%1,'%2','%3','%4',%5);")
+            "INSERT INTO user (u_id, u_name, pw, su_t, sd_t, role) VALUES " +
+            QString("(%1,'%2','%3','%4',%5, '%6');")
             .arg(++maxUserNumber)
             .arg(userName)
             .arg(password)
             .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
-            .arg("NULL");
+            .arg("NULL")
+            .arg(role);
 
     // 执行SQL语句
     query.exec(sql_statement);
@@ -177,9 +259,10 @@ bool ServerCore::registerAccount(const QString &userName, const QString &passwor
         qDebug() << query.lastError();
         return false;
     }
-
     // 更新界面显示的用户表
-    userTableModel->select();
+    if (userTableModel){
+        userTableModel->select();
+    }
 
     return true;
 }
@@ -255,12 +338,13 @@ bool ServerCore::createChatroom(const QString &chatroomName, const QString &user
         .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
         .arg("NULL"));
     query.exec(QString(
-        "INSERT INTO user_chatroom (u_id, c_id, j_t, q_t) VALUES "
-        "(%1,%2,'%3',%4);")
+        "INSERT INTO user_chatroom (u_id, c_id, j_t, q_t, role) VALUES "
+        "(%1,%2,'%3',%4, '%5');")
         .arg(userID)
         .arg(maxChatroomNumber)
         .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
-        .arg("NULL"));
+        .arg("NULL")
+        .arg("root"));
     query.exec("COMMIT;");
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
@@ -268,7 +352,9 @@ bool ServerCore::createChatroom(const QString &chatroomName, const QString &user
     }
 
     // 更新界面显示的聊天室表
-    chatTableModel->select();
+    if (chatTableModel){
+        chatTableModel->select();
+    }
 
     return true;
 }
@@ -304,12 +390,13 @@ bool ServerCore::joinChatroom(const QString &chatroomName, const QString &userNa
 
     // 插入新用户-聊天室关系
     query.exec(QString(
-        "INSERT INTO user_chatroom (u_id, c_id, j_t, q_t) VALUES "
-        "(%1,%2,'%3',%4);")
+        "INSERT INTO user_chatroom (u_id, c_id, j_t, q_t, role) VALUES "
+        "(%1,%2,'%3',%4,'%5');")
         .arg(userID)
         .arg(chatroomID)
         .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
-        .arg("NULL"));
+        .arg("NULL")
+        .arg("user"));
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
         return false;
@@ -525,7 +612,7 @@ void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
             return;
         }
     } else if (type == "register") {
-        if (registerAccount(dataObj["userName"].toString(), dataObj["password"].toString())) {
+        if (registerAccount(dataObj["userName"].toString(), dataObj["password"].toString(), dataObj["role"].toString())) {
             qDebug() << "新账号注册成功";
             QJsonObject resJsonObj = baseJsonObj(type, "success");
 

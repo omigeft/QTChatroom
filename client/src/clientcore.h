@@ -20,7 +20,7 @@ public:
 
     bool connectServer(const QHostAddress &address, const quint16 &port);
 
-    bool registerRequest(const QString &userName, const QString &password);
+    bool registerRequest(const QString &userName, const QString &password, const QString &role);
 
     bool loginRequest(const QString &userName, const QString &password);
 

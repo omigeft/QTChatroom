@@ -25,13 +25,13 @@ void Widget::on_CloseButton_clicked()
 
 void Widget::on_LoginButton_clicked()
 {
-    if (core->createServer(QHostAddress(ui->IPInput->text()), ui->PortInput->text().toInt())) {
+    if (core->createServer(QHostAddress(ui->IPInput->text()), ui->PortInput->text().toInt(),
+                           ui->AdminInput->text(), ui->PassWordInput->text())) {
         //跳转界面
         AdminManagement * adminManageWindow = new AdminManagement;
         this->close();
         adminManageWindow->show();
     }
-    
 
     // //判断是否正确验证
     // bool isRight;
