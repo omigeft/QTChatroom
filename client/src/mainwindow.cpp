@@ -13,8 +13,10 @@ MainWindow::MainWindow(QWidget *parent)
     //绘制阴影
     QGraphicsDropShadowEffect * shadowEffect = new QGraphicsDropShadowEffect();
     shadowEffect->setOffset(0, 0);
-    shadowEffect->setColor(QColor(QStringLiteral("black")));
-    shadowEffect->setBlurRadius(10);
+    QColor color = Qt::black;
+    color.setAlpha(64);
+    shadowEffect->setColor(color);
+    shadowEffect->setBlurRadius(20);
     this->setGraphicsEffect(shadowEffect);
 
     // 获取核心实例

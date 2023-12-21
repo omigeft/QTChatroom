@@ -15,8 +15,10 @@ ChatList::ChatList(QWidget *parent) :
     //绘制阴影
     QGraphicsDropShadowEffect * shadowEffect = new QGraphicsDropShadowEffect();
     shadowEffect->setOffset(0, 0);
-    shadowEffect->setColor(QColor(QStringLiteral("black")));
-    shadowEffect->setBlurRadius(10);
+    QColor color = Qt::black;
+    color.setAlpha(64);
+    shadowEffect->setColor(color);
+    shadowEffect->setBlurRadius(20);
     this->setGraphicsEffect(shadowEffect);
     //设置该聊天窗口的标题-----用户名
     ui->UserNameLabel->setText("当前用户：" + core->currentUserName);
