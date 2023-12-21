@@ -33,7 +33,7 @@ private slots:
 
     void on_NewChatButton_clicked();
 
-    void on_SortChatButton_clicked();
+    void on_FindChatButton_clicked();
 
     void on_closeButton_clicked();
 
@@ -43,6 +43,7 @@ private:
     QPoint diff_pos;
     Ui::ChatList *ui;
     ClientCore *core;
+    QString findName;
 };
 
 #endif // CHATLIST_H

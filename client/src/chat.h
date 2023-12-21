@@ -25,6 +25,8 @@ public:
     ~Chat();
 
 private slots:
+    void refreshUserList();
+
     void refreshChat();
 
     void on_CloseButton_clicked();

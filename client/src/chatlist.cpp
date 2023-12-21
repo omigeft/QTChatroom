@@ -3,8 +3,7 @@
 #include <QGraphicsDropShadowEffect>
 ChatList::ChatList(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::ChatList)
-{
+    ui(new Ui::ChatList) {
     ui->setupUi(this);
 
     // 获取核心实例
@@ -27,22 +26,28 @@ ChatList::ChatList(QWidget *parent) :
     //ui->frame->setStyleSheet(qss);
     //设置关闭按钮
     ui->closeButton->setIcon(QPixmap(":/icon/icon/close.png"));
+
+    ui->NewChatButton->setEnabled(false);
+
+    // 如果ui->ChatNameInput编辑了不为空，则激活ui->NewChatButton
+    connect(ui->ChatNameInput, &QLineEdit::textChanged, [=](){
+        ui->NewChatButton->setEnabled(!ui->ChatNameInput->text().isEmpty());
+    });
+
     // 刷新列表
     refreshChatList();
 
-    // 每隔3秒重复刷新一次聊天室列表
+    // 每隔10秒重复刷新一次聊天室列表
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &ChatList::refreshChatList);
-    timer->start(3000);
+    timer->start(10000);
 }
 
-ChatList::~ChatList()
-{
+ChatList::~ChatList() {
     delete ui;
 }
 
-void ChatList::refreshChatList()
-{
+void ChatList::refreshChatList() {
     // 从服务器上获取一次聊天室列表
     core->getChatListRequest(core->currentUserName);
 
@@ -51,12 +56,24 @@ void ChatList::refreshChatList()
     ui->UJoinChatListWidget->clear();
 
     // 更新列表
-    ui->HJoinChatListWidget->addItems(core->joinedList);
-    ui->UJoinChatListWidget->addItems(core->unjoinedList);
+    if (findName.isEmpty()) {
+        ui->HJoinChatListWidget->addItems(core->joinedList);
+        ui->UJoinChatListWidget->addItems(core->unjoinedList);
+    } else {
+        for (auto it = core->joinedList.begin(); it != core->joinedList.end(); it++) {
+            if (it->contains(findName)) {
+                ui->HJoinChatListWidget->addItem(*it);
+            }
+        }
+        for (auto it = core->unjoinedList.begin(); it != core->unjoinedList.end(); it++) {
+            if (it->contains(findName)) {
+                ui->UJoinChatListWidget->addItem(*it);
+            }
+        }
+    }
 }
 
-void ChatList::on_OpenChatButton_clicked()
-{
+void ChatList::on_OpenChatButton_clicked() {
     if (ui->HJoinChatListWidget->count() > 0 && ui->HJoinChatListWidget->currentItem() != NULL) {
         qDebug() << ui->HJoinChatListWidget->count();
         QString chatName = ui->HJoinChatListWidget->currentItem()->text();
@@ -69,8 +86,7 @@ void ChatList::on_OpenChatButton_clicked()
     }
 }
 
-void ChatList::on_JoinButton_clicked()
-{
+void ChatList::on_JoinButton_clicked() {
     if (ui->HJoinChatListWidget->count() > 0 && ui->HJoinChatListWidget->currentItem() != NULL) {
         QString chatName = ui->UJoinChatListWidget->currentItem()->text();
         core->joinChatroomRequest(chatName, core->currentUserName);
@@ -78,8 +94,7 @@ void ChatList::on_JoinButton_clicked()
     }
 }
 
-void ChatList::on_NewChatButton_clicked()
-{
+void ChatList::on_NewChatButton_clicked() {
     QString chatName = ui->ChatNameInput->text();
     if (chatName.length() > 0 && chatName.length() <= 20) {
         core->createChatroomRequest(chatName, core->currentUserName);
@@ -89,25 +104,17 @@ void ChatList::on_NewChatButton_clicked()
     }
 }
 
-void ChatList::on_SortChatButton_clicked()
-{
-    //筛选，包含部分的都会筛选出来
-    QString chatName = ui->ChatNameInput->text();
-    core->selectList=core->unjoinedList.filter(chatName);
-    ui->UJoinChatListWidget->clear();
-    ui->UJoinChatListWidget->addItems(core->selectList);
-    ui->UJoinChatListWidget->setCurrentRow(0);
+void ChatList::on_FindChatButton_clicked() {
+    findName = ui->ChatNameInput->text();
+    refreshChatList();
 }
 
-void ChatList::on_closeButton_clicked()
-{
+void ChatList::on_closeButton_clicked() {
     this->close();
 }
-void ChatList::mousePressEvent(QMouseEvent * event)
-{
+void ChatList::mousePressEvent(QMouseEvent * event) {
     diff_pos = this->pos()-event->globalPos();
 }
-void ChatList::mouseMoveEvent(QMouseEvent *event)
-{
+void ChatList::mouseMoveEvent(QMouseEvent *event) {
     this->move(event->globalPos()+diff_pos);
 }

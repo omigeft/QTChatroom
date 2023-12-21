@@ -31,12 +31,18 @@ Chat::Chat(const QString &chatName, QWidget *parent) :
 
     latestMessageID = 0;
 
+    refreshUserList();
     refreshChat();
 
-    // 每隔1秒重复刷新一次聊天室
+    // 每隔1秒重复刷新一次聊天记录
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &Chat::refreshChat);
     timer->start(1000);
+
+    // 每隔10秒重复刷新一次聊天室成员列表
+    QTimer *timer2 = new QTimer(this);
+    connect(timer2, &QTimer::timeout, this, &Chat::refreshUserList);
+    timer2->start(10000);
 }
 
 Chat::~Chat()
@@ -44,8 +50,7 @@ Chat::~Chat()
     delete ui;
 }
 
-void Chat::refreshChat()
-{
+void Chat::refreshUserList() {
     // 从服务器上获取一次聊天室成员列表
     QJsonArray userListArray = core->getChatUserListRequest(currentChatName);
     userList.clear();
@@ -59,7 +64,10 @@ void Chat::refreshChat()
 
     // 更新聊天室成员列表
     ui->UserlistWidget->addItems(userList);
+}
 
+void Chat::refreshChat()
+{
     // 从服务器上获取一次最新聊天记录
     QJsonArray newMessageArray = core->getMessageRequest(currentChatName, latestMessageID);
 

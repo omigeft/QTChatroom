@@ -38,6 +38,9 @@ font-weight:650;
 height:25px;
 width: 80%;
 }
+QPushButton:disabled {
+background-color: #787a7e;
+}
 QPushButton:hover {
 background-color: #383a3e;
 }
@@ -171,7 +174,7 @@ border-color: #db9a45;
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="SortChatButton">
+           <widget class="QPushButton" name="FindChatButton">
             <property name="text">
              <string>搜索</string>
             </property>
