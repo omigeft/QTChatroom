@@ -20,17 +20,22 @@
    <string>群聊列表</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QLabel{
+   <string notr="true">#frame{
+border：none;
+border-radius: 10px;
+}
+QLabel{
 color:rgb(255, 255, 255)
 }
 QPushButton{
+color:#ffffff;
 font:75 10pt &quot;Microsoft YaHei UI&quot;;
-background:rgba(255,255,255,0.7);
+background:rgba(0,0,0,0.4);
 border: 1px solid rgba(0, 0, 0,0.8);
-border-radius: 3px;
+border-radius: 2px;
 }
 QPushButton:hover {
-background: rgba(255,255,255,0.8);
+background: rgba(0,0,0,0.2);
 }
 QListWidget{
 background:rgba(255,255,255,0.7);
@@ -39,6 +44,12 @@ background:rgba(255,255,255,0.7);
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <widget class="QFrame" name="frame">
+     <property name="maximumSize">
+      <size>
+       <width>500</width>
+       <height>930</height>
+      </size>
+     </property>
      <property name="styleSheet">
       <string notr="true">#frame{border-image:url(pic/listback3.jpg)}</string>
      </property>
@@ -82,7 +93,7 @@ background:rgba(255,255,255,0.7);
           <property name="styleSheet">
            <string notr="true">#closeButton{
 border:none;
-background:rgba(255,255,255,0.8);
+background:rgba(255,255,255,0.4);
 }
 #closeButton:hover {
 background: rgba(255,255,255,0.7);
@@ -138,7 +149,13 @@ background: rgba(255,255,255,0.7);
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QLineEdit" name="ChatNameInput"/>
+           <widget class="QLineEdit" name="ChatNameInput">
+            <property name="styleSheet">
+             <string notr="true">QLineEdit{
+background:rgba(255,255,255,0.6);
+}</string>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="SortChatButton">

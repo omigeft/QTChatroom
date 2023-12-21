@@ -14,12 +14,8 @@ ChatList::ChatList(QWidget *parent) :
     //设置该聊天窗口的标题-----用户名
     ui->UserNameLabel->setText("当前用户：" + core->currentUserName);
     //设置背景
-    //QPalette palette = ui->frame->palette();
     QString qss = "#frame{border-image:url(:/pic/listback"+QString::number(QRandomGenerator::global()->bounded(4))+".jpg)}";
     ui->frame->setStyleSheet(qss);
-
-    //palette.setBrush(QPalette::Window,QBrush(QPixmap(":/pic/listback"+QString::number(QRandomGenerator::global()->bounded(4))+".jpg")));
-    //this->setPalette(palette);
     //设置关闭按钮
     ui->closeButton->setIcon(QPixmap(":/icon/icon/close.png"));
     // 刷新列表
