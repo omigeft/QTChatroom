@@ -62,9 +62,11 @@ public:
     QSqlTableModel* userTableModel;
     QSqlTableModel* chatTableModel;
 
+    int adminUserID;                // 目前登录服务器的管理员用户ID
+    QString adminUserName;          // 目前登录服务器的管理员用户名
+
     QMap<QString, QTcpSocket*> userSocketMap; // 用户名与socket的映射
 
-private:
     int maxUserNumber;              // 用于计数累计用户数量，从而确定新建u_id
     int maxChatroomNumber;          // 用于计数累计聊天室数量，从而确定新建c_id
     int maxMessageNumber;           // 用于计数累计消息数量，从而确定新建m_id

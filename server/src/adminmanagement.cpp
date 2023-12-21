@@ -10,15 +10,56 @@
 #include <QtDebug>
 AdminManagement::AdminManagement(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::AdminManagement)
-{
+    ui(new Ui::AdminManagement) {
     ui->setupUi(this);
 
     // 获取核心实例
     core = &ServerCore::getInstance();
 
+    //设置该聊天窗口的标题-----管理员名
+    this->setWindowTitle("当前管理员：" + core->adminUserName);
+
     ui->UserTable->setModel(core->userTableModel);
     ui->ChatTable->setModel(core->chatTableModel);
+
+    ui->FindUserButton->setEnabled(false);
+    ui->DeleteUserButton->setEnabled(false);
+
+    ui->FindChatButton->setEnabled(false);
+    ui->DeleteChatButton->setEnabled(false);
+    ui->ManageUserButton->setEnabled(false);
+    ui->ManageChatButton->setEnabled(false);
+
+    // 如果ui->UserInput编辑了不为空，则激活ui->FindUserButton
+    connect(ui->UserInput, &QLineEdit::textChanged, [=](){
+        ui->FindUserButton->setEnabled(!ui->UserInput->text().isEmpty());
+    });
+
+    // 如果ui->ChatInput编辑了不为空，则激活ui->FindChatButton
+    connect(ui->ChatInput, &QLineEdit::textChanged, [=](){
+        ui->FindChatButton->setEnabled(!ui->ChatInput->text().isEmpty());
+    });
+
+    // 如果ui->UserTable至少选中了一行，则激活ui->DeleteUserButton
+    connect(ui->UserTable->selectionModel(), &QItemSelectionModel::selectionChanged, [=](){
+        ui->DeleteUserButton->setEnabled(!ui->UserTable->selectionModel()->selectedRows().isEmpty());
+    });
+
+    // 如果ui->ChatTable至少选中了一行，则激活ui->DeleteChatButton
+    connect(ui->ChatTable->selectionModel(), &QItemSelectionModel::selectionChanged, [=](){
+        ui->DeleteChatButton->setEnabled(!ui->ChatTable->selectionModel()->selectedRows().isEmpty());
+    });
+
+    // 如果ui->ChatTable选中且仅选中了一行，则激活ui->ManageUserButton和ui->ManageChatButton
+    connect(ui->ChatTable->selectionModel(), &QItemSelectionModel::selectionChanged, [=](){
+        ui->ManageUserButton->setEnabled(ui->ChatTable->selectionModel()->selectedRows().count() == 1);
+    });
+    connect(ui->ChatTable->selectionModel(), &QItemSelectionModel::selectionChanged, [=](){
+        ui->ManageChatButton->setEnabled(ui->ChatTable->selectionModel()->selectedRows().count() == 1);
+    });
+
+    connect(core->userTableModel, &QSqlTableModel::dataChanged, this, &AdminManagement::onUserDataChanged);
+    connect(core->chatTableModel, &QSqlTableModel::dataChanged, this, &AdminManagement::onChatDataChanged);
 
     //设置表格数据区内的所有单元格都不允许编辑
 //    ui->UserTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -45,96 +86,95 @@ AdminManagement::AdminManagement(QWidget *parent) :
 //    insertChatIitem(2,0,"124");
 }
 
-AdminManagement::~AdminManagement()
-{
+AdminManagement::~AdminManagement() {
     delete ui;
 }
-void AdminManagement::insertUserIitem(int row,int column,QString content)
-{
-//    ui->UserTable->setItem(row,column,new QTableWidgetItem(content));
-}
-void AdminManagement::insertChatIitem(int row,int column,QString content)
-{
-//    ui->ChatTable->setItem(row,column,new QTableWidgetItem(content));
-}
-void AdminManagement::on_ChangeButton_clicked()
-{
 
-
-
-//    if(QMessageBox::Yes==QMessageBox::question(this,"再次确认","再次确认是否修改")){
-//    ui->UserTable->currentItem()->setText(ui->ContentInput->text());
-//    ui->ContentInput->text().clear();
-//    }
-    //发送修改信息
+void AdminManagement::onUserDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles) {
+    core->userTableModel->select();
 }
 
-void AdminManagement::on_DeleteButton_clicked()
-{
-//    if(QMessageBox::Yes==QMessageBox::question(this,"再次确认","再次确认是否删除")){
-//        int curRow=ui->UserTable->currentRow();     //当前行号
-//        ui->UserTable->removeRow(curRow);           //删除当前行及其items
-//    }
-    //发送删除信息
+void AdminManagement::onChatDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles) {
+    core->chatTableModel->select();
 }
 
-void AdminManagement::on_FindButton_clicked()
-{
-//    QList<QTableWidgetItem *> findItemsList = ui->UserTable->findItems(ui->ContentInput->text(),Qt::MatchContains);
-//    if (ui->ContentInput->text()==""){//判断是否是空，如果是空就显示所有行
-//       for(int i=0;i<ui->UserTable->rowCount();i++)
-//           ui->UserTable->setRowHidden(i,false);//为false就是显示
-//    }
-//    else{
-//    //然后把所有行都隐藏
-//    for(int i=0;i<ui->UserTable->rowCount();i++)
-//        ui->UserTable->setRowHidden(i,true);//隐藏
-//    //判断符合条件索引是不是空
-//    if(!findItemsList.empty())//恢复对应的行
-//      for(int i=0;i<findItemsList.count();i++)
-//         ui->UserTable->setRowHidden(findItemsList.at(i)->row(),false);//回复对应的行，也可以回复列
-//    }
+void AdminManagement::on_NewUserButton_clicked() {
+    core->registerAccount(
+        QString("User_%1").arg(core->maxUserNumber + 1),
+        QString("Password_%1").arg(core->maxUserNumber),
+        "user");
 }
 
-void AdminManagement::on_FindButton_2_clicked()
-{
-//    QList<QTableWidgetItem *> findItemsList = ui->ChatTable->findItems(ui->ChatInput->text(),Qt::MatchContains);
-//    if (ui->ChatInput->text()==""){//判断是否是空，如果是空就显示所有行
-//       for(int i=0;i<ui->ChatTable->rowCount();i++)
-//           ui->ChatTable->setRowHidden(i,false);//为false就是显示
-//    }
-//    else{
-//    //然后把所有行都隐藏
-//    for(int i=0;i<ui->ChatTable->rowCount();i++)
-//        ui->ChatTable->setRowHidden(i,true);//隐藏
-//    //判断符合条件索引是不是空
-//    if(!findItemsList.empty())//恢复对应的行
-//      for(int i=0;i<findItemsList.count();i++)
-//         ui->ChatTable->setRowHidden(findItemsList.at(i)->row(),false);//回复对应的行，也可以回复列
-//    }
+void AdminManagement::on_NewChatButton_clicked() {
+    core->createChatroom(
+        QString("Chat_%1").arg(core->maxChatroomNumber + 1),
+        core->adminUserName);
 }
 
-void AdminManagement::on_DeleteButton_2_clicked()
-{
-//    if(QMessageBox::Yes==QMessageBox::question(this,"再次确认","再次确认是否删除")){
-//        int curRow=ui->ChatTable->currentRow();     //当前行号
-//        ui->ChatTable->removeRow(curRow);           //删除当前行及其items
-//    }
-    //发送删除信息
+void AdminManagement::on_DeleteUserButton_clicked() {
+    QItemSelectionModel *selectionModel = ui->UserTable->selectionModel();
+    QModelIndexList selectedRows = selectionModel->selectedRows();
+    QModelIndex index_0;
+    int userID;
+    QSqlQuery query;
+    // 事务开始，保证原子性
+    query.exec("BEGIN");
+    // 删除所有选中的行的用户
+    for (const QModelIndex &index : selectedRows) {
+        index_0 = ui->UserTable->model()->index(index.row(), 0);
+        userID = ui->UserTable->model()->data(index_0).toInt();
+        query.prepare("DELETE FROM user WHERE u_id = :id");
+        query.bindValue(":id", userID);
+        query.exec();
+        if (query.lastError().isValid()) {
+            qDebug() << query.lastError();
+            query.exec("ROLLBACK");
+            core->userTableModel->select();
+            return;
+        }
+        if (userID == core->adminUserID) {
+            QMessageBox::critical(this, "错误", "不能删除管理员账户");
+            query.exec("ROLLBACK");
+            core->userTableModel->select();
+            return;
+        }
+    }
+    // 事务提交
+    query.exec("COMMIT");
+    // 刷新用户表
+    core->userTableModel->select();
 }
 
-void AdminManagement::on_ManageUserButton_clicked()
-{
+void AdminManagement::on_DeleteChatButton_clicked() {
     QItemSelectionModel *selectionModel = ui->ChatTable->selectionModel();
     QModelIndexList selectedRows = selectionModel->selectedRows();
-    if (selectedRows.isEmpty()) {
-        QMessageBox::warning(this, "警告", "请先选择一个群聊");
-        return;
+    QModelIndex index_0;
+    int chatID;
+    QSqlQuery query;
+    // 事务开始，保证原子性
+    query.exec("BEGIN");
+    for (const QModelIndex &index : selectedRows) {
+        index_0 = ui->ChatTable->model()->index(index.row(), 0);
+        chatID = ui->ChatTable->model()->data(index_0).toInt();
+        query.prepare("DELETE FROM chatroom WHERE c_id = :id");
+        query.bindValue(":id", chatID);
+        query.exec();
+        if (query.lastError().isValid()) {
+            qDebug() << query.lastError();
+            query.exec("ROLLBACK");
+            core->chatTableModel->select();
+            return;
+        }
     }
-    if (selectedRows.size() > 1) {
-        QMessageBox::warning(this, "警告", "只能同时选择一个群聊");
-        return;
-    }
+    // 事务提交
+    query.exec("COMMIT");
+    // 刷新聊天室表
+    core->chatTableModel->select();
+}
+
+void AdminManagement::on_ManageUserButton_clicked() {
+    QItemSelectionModel *selectionModel = ui->ChatTable->selectionModel();
+    QModelIndexList selectedRows = selectionModel->selectedRows();
     int rowIndex = selectedRows.first().row();
     QModelIndex index_0 = ui->ChatTable->model()->index(rowIndex, 0);
     QString chatid = ui->ChatTable->model()->data(index_0).toString();
@@ -144,18 +184,9 @@ void AdminManagement::on_ManageUserButton_clicked()
     usermanage->show();
 }
 
-void AdminManagement::on_ManageChatButton_clicked()
-{
+void AdminManagement::on_ManageChatButton_clicked() {
     QItemSelectionModel *selectionModel = ui->ChatTable->selectionModel();
     QModelIndexList selectedRows = selectionModel->selectedRows();
-    if (selectedRows.isEmpty()) {
-        QMessageBox::warning(this, "警告", "请先选择一个群聊");
-        return;
-    }
-    if (selectedRows.size() > 1) {
-        QMessageBox::warning(this, "警告", "只能同时选择一个群聊");
-        return;
-    }
     int rowIndex = selectedRows.first().row();
     QModelIndex index_0 = ui->ChatTable->model()->index(rowIndex, 0);
     QString chatid = ui->ChatTable->model()->data(index_0).toString();

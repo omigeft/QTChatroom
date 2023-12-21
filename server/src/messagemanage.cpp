@@ -18,7 +18,8 @@ MessageManage::MessageManage(const QString &name, const QString &id, QWidget *pa
         "CREATE VIEW IF NOT EXISTS chat_message_%1 AS "
         "SELECT m.m_id, m.m_u_id, u.u_name, m.m_t, m.m_text FROM message m "
         "JOIN user u ON m.m_u_id = u.u_id "
-        "WHERE m.m_c_id = %1;")
+        "WHERE m.m_c_id = %1 "
+        "ORDER BY m.m_id ASC;")
         .arg(RoomID));
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();

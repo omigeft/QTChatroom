@@ -232,6 +232,12 @@ border-color: #db9a45;
    </layout>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>IPInput</tabstop>
+  <tabstop>PortInput</tabstop>
+  <tabstop>ConnectButton</tabstop>
+  <tabstop>CloseButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

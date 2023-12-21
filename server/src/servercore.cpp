@@ -160,24 +160,6 @@ bool ServerCore::createDatabase(const QString &rootUserName, const QString &pass
         return false;
     }
 
-    // 如果不存在超级管理员，则创建超级管理员账号(role="root")
-    if (registerAccount(rootUserName, password, "root")) {
-        qDebug() << "超级管理员账号创建成功!";
-    } else {
-        // 若存在超级管理员，验证密码是否正确
-        query.exec(QString("SELECT * FROM user WHERE u_name='%1' AND pw='%2' AND role='root';")
-            .arg(rootUserName)
-            .arg(password));
-        if (query.lastError().isValid()) {
-            qDebug() << query.lastError();
-            return false;
-        }
-        if (!query.next()) {
-            qDebug() << "超级管理员创建失败或账号密码错误!";
-            return false;
-        }
-    }
-
     query.exec("SELECT MAX(u_id) FROM user;");
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
@@ -201,6 +183,29 @@ bool ServerCore::createDatabase(const QString &rootUserName, const QString &pass
     }
     if (query.next())
         maxMessageNumber = query.value(0).toInt(); // 获取消息号最大值
+
+    // 如果不存在超级管理员，则创建超级管理员账号(role="root")
+    if (registerAccount(rootUserName, password, "root")) {
+        adminUserID = maxUserNumber;    // 设置当前管理员用户ID
+        qDebug() << "超级管理员账号创建成功!";
+    } else {
+        // 若存在超级管理员，验证密码是否正确
+        query.exec(QString("SELECT u_id FROM user WHERE u_name='%1' AND pw='%2' AND role='root';")
+            .arg(rootUserName)
+            .arg(password));
+        if (query.lastError().isValid()) {
+            qDebug() << query.lastError();
+            return false;
+        }
+        if (!query.next()) {
+            qDebug() << "超级管理员创建失败或账号密码错误!";
+            return false;
+        }
+        adminUserID = query.value(0).toInt();    // 设置当前管理员用户ID
+    }
+
+    adminUserName = rootUserName;           // 设置当前管理员用户名
+    qDebug() << "当前管理员用户ID:" << adminUserID << ";用户名:" << adminUserName;
 
     userTableModel = new QSqlTableModel;
     userTableModel->setTable("user"); // 替换为你的表名
@@ -346,12 +351,13 @@ bool ServerCore::createChatroom(const QString &chatroomName, const QString &user
         .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
         .arg("NULL")
         .arg("root"));
-    query.exec("COMMIT;");
     if (query.lastError().isValid()) {
-        --maxChatroomNumber;
         qDebug() << query.lastError();
+        query.exec("ROLLBACK;");
+        --maxChatroomNumber;
         return false;
     }
+    query.exec("COMMIT;");
 
     // 更新界面显示的聊天室表
     if (chatTableModel){

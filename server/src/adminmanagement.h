@@ -17,18 +17,13 @@ public:
     ~AdminManagement();
 
 private slots:
-    void on_ChangeButton_clicked();
-
-    void on_DeleteButton_clicked();
-
-    void on_FindButton_clicked();
-
-    void on_FindButton_2_clicked();
-
-    void on_DeleteButton_2_clicked();
-
+    void onUserDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
+    void onChatDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
+    void on_NewUserButton_clicked();
+    void on_NewChatButton_clicked();
+    void on_DeleteUserButton_clicked();
+    void on_DeleteChatButton_clicked();
     void on_ManageUserButton_clicked();
-
     void on_ManageChatButton_clicked();
 
 private:

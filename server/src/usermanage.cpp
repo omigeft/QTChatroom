@@ -17,7 +17,8 @@ UserManage::UserManage(const QString &name, const QString &id, QWidget *parent) 
         "CREATE VIEW IF NOT EXISTS chat_user_%1 AS "
         "SELECT u.u_id, u.u_name, j_t, uc.role FROM user_chatroom uc "
         "JOIN user u ON uc.u_id = u.u_id "
-        "WHERE uc.c_id = %1;"
+        "WHERE uc.c_id = %1 "
+        "ORDER BY u.u_id ASC;"
         ).arg(RoomID));
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
