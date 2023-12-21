@@ -12,10 +12,9 @@ AdminManagement::AdminManagement(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::AdminManagement) {
     ui->setupUi(this);
-
     // 获取核心实例
     core = &ServerCore::getInstance();
-
+    //:/icon/manage.png
     //设置该聊天窗口的标题-----管理员名
     this->setWindowTitle("当前管理员：" + core->adminUserName);
 

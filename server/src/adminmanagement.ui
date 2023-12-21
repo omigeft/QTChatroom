@@ -6,12 +6,50 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>757</width>
-    <height>483</height>
+    <width>973</width>
+    <height>557</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>960</width>
+    <height>0</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>管理界面</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="res.qrc">
+    <normaloff>:/icon/manage.ico</normaloff>:/icon/manage.ico</iconset>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QPushButton {
+background-color:#030408;
+color:#db9a45;
+font-size: 10px;
+font:10pt &quot;Microsoft YaHei UI&quot;;
+border-radius:8px;
+font-weight:700;
+height:30px;
+width: 100%;
+}
+QPushButton:hover {
+background-color: #383a3e;
+}
+QLineEdit{
+border: 1px solid rgb(41, 57, 85);
+border-radius: 3px;
+border-color:#dcdee0;
+height:36px;
+background: white;
+padding-left: 12px;
+padding-right: 12px;
+border-color:#e4e5eb;
+}
+QLineEdit:hover {
+border-color: #db9a45;
+}</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -128,7 +166,6 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>tabWidget</tabstop>
   <tabstop>UserInput</tabstop>
   <tabstop>FindUserButton</tabstop>
   <tabstop>DeleteUserButton</tabstop>
@@ -142,6 +179,8 @@
   <tabstop>ManageChatButton</tabstop>
   <tabstop>ChatTable</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
  <connections/>
 </ui>

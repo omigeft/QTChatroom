@@ -22,6 +22,9 @@ private slots:
     void on_LoginButton_clicked();
 
 private:
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    QPoint diff_pos;
     Ui::Widget *ui;
     ServerCore *core;
 };

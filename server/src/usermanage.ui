@@ -13,6 +13,39 @@
   <property name="windowTitle">
    <string>群聊用户管理</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>:/icon/manage.png</normaloff>
+    <disabledon>:/icon/manage.png</disabledon>:/icon/manage.png</iconset>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QPushButton {
+background-color:#030408;
+color:#db9a45;
+font-size: 20px;
+font:10pt &quot;Microsoft YaHei UI&quot;;
+border-radius:8px;
+font-weight:700;
+height:30px;
+width: 100%;
+}
+QPushButton:hover {
+background-color: #383a3e;
+}
+QLineEdit{
+border: 1px solid rgb(41, 57, 85);
+border-radius: 3px;
+border-color:#dcdee0;
+height:36px;
+background: white;
+padding-left: 12px;
+padding-right: 12px;
+border-color:#e4e5eb;
+}
+QLineEdit:hover {
+border-color: #db9a45;
+}</string>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="1" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout">
