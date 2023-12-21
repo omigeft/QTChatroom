@@ -2,13 +2,14 @@
 #include "ui_loginwindow.h"
 #include "mainwindow.h"
 #include "chatlist.h"
-
+#include <QPainter>
 LoginWindow::LoginWindow(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::LoginWindow)
 {
     ui->setupUi(this);
-
+    this->setWindowFlags(Qt::FramelessWindowHint);//去除标题栏
+    this->setAttribute(Qt::WA_TranslucentBackground);//透明
     // 获取核心实例
     core = &ClientCore::getInstance();
 }
@@ -36,4 +37,20 @@ void LoginWindow::on_LoginButton_clicked()
         this->close();
         userChatList->show();
     }
+}
+void LoginWindow::paintEvent(QPaintEvent *)
+{
+    QStyleOption opt;
+    opt.init(this);
+    QPainter p(this);
+    style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+
+}
+void LoginWindow::mousePressEvent(QMouseEvent * event)
+{
+    diff_pos = this->pos()-event->globalPos();
+}
+void LoginWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    this->move(event->globalPos()+diff_pos);
 }

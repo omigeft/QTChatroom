@@ -1,4 +1,5 @@
 #include "chatlist.h"
+#include <QWidget>
 ChatList::ChatList(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ChatList)
@@ -8,9 +9,19 @@ ChatList::ChatList(QWidget *parent) :
     // 获取核心实例
     core = &ClientCore::getInstance();
 
+    this->setWindowFlags(Qt::FramelessWindowHint);//去除标题栏
+    this->setAttribute(Qt::WA_TranslucentBackground);//透明
     //设置该聊天窗口的标题-----用户名
-    this->setWindowTitle("当前用户：" + core->currentUserName);
+    ui->UserNameLabel->setText("当前用户：" + core->currentUserName);
+    //设置背景
+    //QPalette palette = ui->frame->palette();
+    QString qss = "#frame{border-image:url(:/pic/listback"+QString::number(QRandomGenerator::global()->bounded(4))+".jpg)}";
+    ui->frame->setStyleSheet(qss);
 
+    //palette.setBrush(QPalette::Window,QBrush(QPixmap(":/pic/listback"+QString::number(QRandomGenerator::global()->bounded(4))+".jpg")));
+    //this->setPalette(palette);
+    //设置关闭按钮
+    ui->closeButton->setIcon(QPixmap(":/icon/icon/close.png"));
     // 刷新列表
     refreshChatList();
 }
@@ -77,4 +88,17 @@ void ChatList::on_SortChatButton_clicked()
     ui->UJoinChatListWidget->clear();
     ui->UJoinChatListWidget->addItems(core->selectList);
     ui->UJoinChatListWidget->setCurrentRow(0);
+}
+
+void ChatList::on_closeButton_clicked()
+{
+    this->close();
+}
+void ChatList::mousePressEvent(QMouseEvent * event)
+{
+    diff_pos = this->pos()-event->globalPos();
+}
+void ChatList::mouseMoveEvent(QMouseEvent *event)
+{
+    this->move(event->globalPos()+diff_pos);
 }

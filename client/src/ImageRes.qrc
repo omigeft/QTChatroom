@@ -11,5 +11,12 @@
         <file>pic/8.jpg</file>
         <file>pic/9.jpg</file>
         <file>pic/10.jpg</file>
+        <file>pic/listback0.jpg</file>
+        <file>pic/listback1.jpg</file>
+        <file>pic/listback2.jpg</file>
+        <file>pic/listback3.jpg</file>
+    </qresource>
+    <qresource prefix="/icon">
+        <file>icon/close.png</file>
     </qresource>
 </RCC>

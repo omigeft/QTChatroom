@@ -7,6 +7,7 @@
 #include <QStringList>
 #include <QDebug>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include "ui_chatlist.h"
 #include "chat.h"
 #include "clientcore.h"
@@ -34,7 +35,12 @@ private slots:
 
     void on_SortChatButton_clicked();
 
+    void on_closeButton_clicked();
+
 private:
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    QPoint diff_pos;
     Ui::ChatList *ui;
     ClientCore *core;
 };

@@ -1,6 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-
+#include <QMouseEvent>
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QtNetwork>
@@ -24,7 +24,12 @@ private slots:
     void on_ConnectButton_clicked();
 
 private:
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+
+private:
     Ui::MainWindow *ui;
     ClientCore *core;
+    QPoint diff_pos;
 };
 #endif // MAINWINDOW_H

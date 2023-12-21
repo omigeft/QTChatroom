@@ -16,6 +16,7 @@ class LoginWindow : public QWidget
 
 public:
     explicit LoginWindow(QWidget *parent = nullptr);
+    void paintEvent(QPaintEvent *event) override;
     ~LoginWindow();
 
 private slots:
@@ -26,6 +27,9 @@ private slots:
     void on_LoginButton_clicked();
 
 private:
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    QPoint diff_pos;
     Ui::LoginWindow *ui;
     ClientCore *core;
 };

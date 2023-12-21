@@ -1,12 +1,14 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "loginwindow.h"
-
+#include <QMouseEvent>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    this->setWindowFlags(Qt::FramelessWindowHint);//去除标题栏
+    this->setAttribute(Qt::WA_TranslucentBackground);//透明
 
     // 获取核心实例
     core = &ClientCore::getInstance();
@@ -32,4 +34,12 @@ void MainWindow::on_ConnectButton_clicked()
         this->close();
         loginwindow->show();
     }
+}
+void MainWindow::mousePressEvent(QMouseEvent * event)
+{
+    diff_pos = this->pos()-event->globalPos();
+}
+void MainWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    this->move(event->globalPos()+diff_pos);
 }
