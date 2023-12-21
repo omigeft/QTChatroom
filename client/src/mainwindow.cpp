@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
     color.setAlpha(64);
     shadowEffect->setColor(color);
     shadowEffect->setBlurRadius(20);
-    this->setGraphicsEffect(shadowEffect);
+    ui->frame->setGraphicsEffect(shadowEffect);
 
     // 获取核心实例
     core = &ClientCore::getInstance();

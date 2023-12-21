@@ -19,7 +19,7 @@ ChatList::ChatList(QWidget *parent) :
     color.setAlpha(64);
     shadowEffect->setColor(color);
     shadowEffect->setBlurRadius(20);
-    this->setGraphicsEffect(shadowEffect);
+    ui->frame->setGraphicsEffect(shadowEffect);
     //设置该聊天窗口的标题-----用户名
     ui->UserNameLabel->setText("当前用户：" + core->currentUserName);
     //设置背景

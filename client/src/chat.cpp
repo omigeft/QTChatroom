@@ -21,7 +21,7 @@ Chat::Chat(const QString &chatName, QWidget *parent) :
     color.setAlpha(64);
     shadowEffect->setColor(color);
     shadowEffect->setBlurRadius(20);
-    this->setGraphicsEffect(shadowEffect);
+    ui->frame->setGraphicsEffect(shadowEffect);
     // 群头像
     QString picPath = ":/pic/"+QString::number(QRandomGenerator::global()->bounded(10))+".jpg";
     qDebug()<<picPath;
