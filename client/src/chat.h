@@ -23,9 +23,9 @@ public:
     explicit Chat(const QString &chatName, QWidget *parent = nullptr);
     ~Chat();
 
+private slots:
     void refreshChat();
 
-private slots:
     void on_CloseButton_clicked();
 
     void on_SendButton_clicked();

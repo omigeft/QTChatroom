@@ -17,11 +17,11 @@ public:
     }
 
 public:
-    bool createServer(QHostAddress address, quint16 port);
+    bool createServer(const QHostAddress &address, quint16 port, const QString &rootUserName, const QString &password);
 
-    bool createDatabase();
+    bool createDatabase(const QString &rootUserName, const QString &password);
 
-    bool registerAccount(const QString &userName, const QString &password);
+    bool registerAccount(const QString &userName, const QString &password, const QString &role);
 
     bool loginAccount(QTcpSocket *socket, const QString &userName, const QString &password);
 

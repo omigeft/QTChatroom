@@ -1,11 +1,41 @@
 #include "messagemanage.h"
 #include "ui_messagemanage.h"
 #include <QMessageBox>
-MessageManage::MessageManage(QWidget *parent) :
+MessageManage::MessageManage(const QString &name, const QString &id, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MessageManage)
 {
     ui->setupUi(this);
+
+    Roomname = name;
+    RoomID = id;
+    ui->ChatName->setText("聊天名称:"+name);
+    ui->ChatID->setText("聊天ID:"+id);
+
+
+    QSqlQuery query;
+    query.exec(QString(
+        "CREATE VIEW IF NOT EXISTS chat_message_%1 AS "
+        "SELECT m.m_id, m.m_u_id, u.u_name, m.m_t, m.m_text FROM message m "
+        "JOIN user u ON m.m_u_id = u.u_id "
+        "WHERE m.m_c_id = %1;")
+        .arg(RoomID));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return;
+    }
+
+    chatMessageTableModel = new QSqlTableModel(this);
+    chatMessageTableModel->setTable(QString("chat_message_%1").arg(RoomID));
+    chatMessageTableModel->select();
+    chatMessageTableModel->setHeaderData(0, Qt::Horizontal, "消息ID");
+    chatMessageTableModel->setHeaderData(1, Qt::Horizontal, "发送者用户ID");
+    chatMessageTableModel->setHeaderData(2, Qt::Horizontal, "发送者用户名");
+    chatMessageTableModel->setHeaderData(3, Qt::Horizontal, "发送时间");
+    chatMessageTableModel->setHeaderData(4, Qt::Horizontal, "内容");
+
+    ui->MessageTable->setModel(chatMessageTableModel);
+
     //伴随父窗口关闭
 //    setAttribute(Qt::WA_QuitOnClose,false);
 //    //不允许通过其他方式修改
@@ -29,14 +59,8 @@ MessageManage::~MessageManage()
 {
     delete ui;
 }
-void MessageManage::init(QString name,QString id)
-{
-    Roomname = name;
-    RoomID = id;
-    ui->ChatName->setText("聊天名称:"+name);
-    ui->ChatID->setText("聊天ID:"+id);
-}
-void MessageManage::insertMessageIitem(int row,int column,QString content)
+
+void MessageManage::insertMessageIitem(int row, int column, const QString &content)
 {
 //    ui->MessageTable->setItem(row,column,new QTableWidgetItem(content));
 }

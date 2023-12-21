@@ -2,6 +2,7 @@
 #define MESSAGEMANAGE_H
 
 #include <QWidget>
+#include <QtSql>
 
 namespace Ui {
 class MessageManage;
@@ -12,8 +13,7 @@ class MessageManage : public QWidget
     Q_OBJECT
 
 public:
-    explicit MessageManage(QWidget *parent = nullptr);
-    void init(QString name,QString id);
+    explicit MessageManage(const QString &name, const QString &id, QWidget *parent = nullptr);
     ~MessageManage();
 
 private slots:
@@ -22,10 +22,15 @@ private slots:
     void on_FindButton_clicked();
 
 private:
+    void insertMessageIitem(int row, int column, const QString &content);
+
+    void refreshChatMessageTable();
+
+private:
     QString Roomname;
     QString RoomID;
     Ui::MessageManage *ui;
-    void insertMessageIitem(int row,int column,QString content);
+    QSqlTableModel* chatMessageTableModel;
 };
 
 #endif // MESSAGEMANAGE_H

@@ -25,27 +25,11 @@ void Widget::on_CloseButton_clicked()
 
 void Widget::on_LoginButton_clicked()
 {
-    if (core->createServer(QHostAddress(ui->IPInput->text()), ui->PortInput->text().toInt())) {
+    if (core->createServer(QHostAddress(ui->IPInput->text()), ui->PortInput->text().toInt(),
+                           ui->AdminInput->text(), ui->PassWordInput->text())) {
         //跳转界面
         AdminManagement * adminManageWindow = new AdminManagement;
         this->close();
         adminManageWindow->show();
     }
-    
-
-    // //判断是否正确验证
-    // bool isRight;
-    // isRight = true;
-    // if(isRight)
-    // {
-    //     //跳转界面
-    //     AdminManagement * adminManageWindow = new AdminManagement;
-    //     this->close();
-    //     adminManageWindow->show();
-    // }
-    // else
-    // {
-    //     //验证错误
-    //     QMessageBox::information(this,"输入有误","请输入正确的IP地址、端口号、账户名、密码");
-    // }
 }

@@ -24,9 +24,9 @@ public:
     explicit ChatList(QWidget *parent = nullptr);
     ~ChatList();
 
+private slots:
     void refreshChatList();
 
-private slots:
     void on_OpenChatButton_clicked();
 
     void on_JoinButton_clicked();

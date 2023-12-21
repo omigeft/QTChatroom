@@ -26,7 +26,7 @@ void LoginWindow::on_CloseButton_clicked()
 
 void LoginWindow::on_RegisterButton_clicked()
 {
-    core->registerRequest(ui->NameInput->text(), ui->PassWordInput->text());
+    core->registerRequest(ui->NameInput->text(), ui->PassWordInput->text(), "user");
 }
 
 void LoginWindow::on_LoginButton_clicked()

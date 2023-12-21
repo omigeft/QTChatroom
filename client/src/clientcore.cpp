@@ -56,7 +56,7 @@ bool ClientCore::connectServer(const QHostAddress &address, const quint16 &port)
     return true;
 }
 
-bool ClientCore::registerRequest(const QString &userName, const QString &password) {
+bool ClientCore::registerRequest(const QString &userName, const QString &password, const QString &role) {
     // 检查用户名和密码是否在1-20个字符之间
     if (userName.length() < 1 || userName.length() > 20) {
         qDebug() << "用户名长度不符合要求!";
@@ -67,43 +67,48 @@ bool ClientCore::registerRequest(const QString &userName, const QString &passwor
         return false;
     }
 
-    // 定义正则表达式模式，表示只包含数字、英文字母和特殊字符
-    QRegularExpression regex("^[a-zA-Z0-9!@#$%^&*()-_+=<>?]+$");
-    // 使用正则表达式匹配检查密码字符串
-    if (regex.match(password).hasMatch()) {
-        QJsonObject jsonObj = baseJsonObj("register", "request");
+    // 限制role必须为("root", "admin", "user")中的一个
+    if (role != "root" && role != "admin" && role != "user") {
+        qDebug() << "角色必须为(\"root\", \"admin\", \"user\")中的一个！";
+        return false;
+    }
 
-        // 编辑数据字段
-        QJsonObject dataObj = jsonObj["data"].toObject();
-        dataObj["userName"] = userName;
-        dataObj["password"] = password;
-        jsonObj["data"] = dataObj;
+    // pw must contain at least one number, one letter
+    if (!password.contains(QRegularExpression("^(?=.*[0-9])(?=.*[a-zA-Z])(.{6,20})$"))) {
+        qDebug() << "密码必须包含至少一个数字，一个字母！";
+        return false;
+    }
 
-        QString response;
+    QJsonObject jsonObj = baseJsonObj("register", "request");
 
-        // 等待数据接收
-        if (sendAndWait(response, jsonObj)) {
-            if (!checkMessage(response, jsonObj["type"].toString(), "success")) {
-                return false;
-            }
+    // 编辑数据字段
+    QJsonObject dataObj = jsonObj["data"].toObject();
+    dataObj["userName"] = userName;
+    dataObj["password"] = password;
+    dataObj["role"] = role;
+    jsonObj["data"] = dataObj;
 
-            QJsonDocument resJsonDoc = QJsonDocument::fromJson(response.toUtf8());
-            QJsonObject resJsonObj = resJsonDoc.object();
-            QJsonObject resDataObj = resJsonObj["data"].toObject();
+    QString response;
 
-            if (resDataObj["userName"].toString() != userName) {
-                qDebug() << "收到响应：用户名不匹配";
-                return false;
-            }
-
-            qDebug() << "收到响应：新账号注册成功";
-
-        } else {
-            qDebug() << "未能接收到服务端响应";
+    // 等待数据接收
+    if (sendAndWait(response, jsonObj)) {
+        if (!checkMessage(response, jsonObj["type"].toString(), "success")) {
             return false;
         }
+
+        QJsonDocument resJsonDoc = QJsonDocument::fromJson(response.toUtf8());
+        QJsonObject resJsonObj = resJsonDoc.object();
+        QJsonObject resDataObj = resJsonObj["data"].toObject();
+
+        if (resDataObj["userName"].toString() != userName) {
+            qDebug() << "收到响应：用户名不匹配";
+            return false;
+        }
+
+        qDebug() << "收到响应：新账号注册成功";
+
     } else {
-        qDebug() << "用户名和密码包含不允许的字符！";
+        qDebug() << "未能接收到服务端响应";
         return false;
     }
 
@@ -121,45 +126,43 @@ bool ClientCore::loginRequest(const QString &userName, const QString &password) 
         return false;
     }
 
-    // 定义正则表达式模式，表示只包含数字、英文字母和特殊字符
-    QRegularExpression regex("^[a-zA-Z0-9!@#$%^&*()-_+=<>?]+$");
-    // 使用正则表达式匹配检查密码字符串
-    if (regex.match(password).hasMatch()) {
-        QJsonObject jsonObj = baseJsonObj("login", "request");
+    // pw must contain at least one number, one letter
+    if (!password.contains(QRegularExpression("^(?=.*[0-9])(?=.*[a-zA-Z])(.{6,20})$"))) {
+        qDebug() << "密码必须包含至少一个数字，一个字母！";
+        return false;
+    }
 
-        // 编辑数据字段
-        QJsonObject dataObj = jsonObj["data"].toObject();
-        dataObj["userName"] = userName;
-        dataObj["password"] = password;
-        jsonObj["data"] = dataObj;
+    QJsonObject jsonObj = baseJsonObj("login", "request");
 
-        QString response;
+    // 编辑数据字段
+    QJsonObject dataObj = jsonObj["data"].toObject();
+    dataObj["userName"] = userName;
+    dataObj["password"] = password;
+    jsonObj["data"] = dataObj;
 
-        // 等待数据接收
-        if (sendAndWait(response, jsonObj)) {
-            if (!checkMessage(response, jsonObj["type"].toString(), "success")) {
-                return false;
-            }
+    QString response;
 
-            QJsonDocument resJsonDoc = QJsonDocument::fromJson(response.toUtf8());
-            QJsonObject resJsonObj = resJsonDoc.object();
-            QJsonObject resDataObj = resJsonObj["data"].toObject();
-
-            if (resDataObj["userName"].toString() != userName) {
-                qDebug() << "收到响应：用户名不匹配";
-                return false;
-            }
-
-            qDebug() << "收到响应：登录成功";
-
-            currentUserName = userName;
-
-        } else {
-            qDebug() << "未能接收到服务端响应";
+    // 等待数据接收
+    if (sendAndWait(response, jsonObj)) {
+        if (!checkMessage(response, jsonObj["type"].toString(), "success")) {
             return false;
         }
+
+        QJsonDocument resJsonDoc = QJsonDocument::fromJson(response.toUtf8());
+        QJsonObject resJsonObj = resJsonDoc.object();
+        QJsonObject resDataObj = resJsonObj["data"].toObject();
+
+        if (resDataObj["userName"].toString() != userName) {
+            qDebug() << "收到响应：用户名不匹配";
+            return false;
+        }
+
+        qDebug() << "收到响应：登录成功";
+
+        currentUserName = userName;
+
     } else {
-        qDebug() << "用户名和密码包含不允许的字符！";
+        qDebug() << "未能接收到服务端响应";
         return false;
     }
 
@@ -417,6 +420,8 @@ void ClientCore::processReadMessage(const QString &message) {
 
     emit readMessage(message);
 
+    return; // TODO
+
     // 无聊天室打开时，不处理消息
     if (nameChatMap.isEmpty()) {
         return;
@@ -434,7 +439,7 @@ void ClientCore::processReadMessage(const QString &message) {
     QString chatName = resDataObj["chatName"].toString();
 
     // 被提醒，表示有新消息，需要更新消息列表
-    nameChatMap[chatName]->refreshChat();
+//    nameChatMap[chatName]->refreshChat();
 }
 
 void ClientCore::onReadyRead() {

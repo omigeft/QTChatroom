@@ -124,6 +124,13 @@ p, li { white-space: pre-wrap; }
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>chatBrowser</tabstop>
+  <tabstop>MessageInput</tabstop>
+  <tabstop>SendButton</tabstop>
+  <tabstop>UserlistWidget</tabstop>
+  <tabstop>CloseButton</tabstop>
+ </tabstops>
  <resources>
   <include location="ImageRes.qrc"/>
  </resources>

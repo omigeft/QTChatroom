@@ -24,6 +24,11 @@ ChatList::ChatList(QWidget *parent) :
     ui->closeButton->setIcon(QPixmap(":/icon/icon/close.png"));
     // 刷新列表
     refreshChatList();
+
+    // 每隔3秒重复刷新一次聊天室列表
+    QTimer *timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, &ChatList::refreshChatList);
+    timer->start(3000);
 }
 
 ChatList::~ChatList()
@@ -47,10 +52,10 @@ void ChatList::refreshChatList()
 
 void ChatList::on_OpenChatButton_clicked()
 {
-    if(ui->HJoinChatListWidget->count()>0)
-    {
+    if (ui->HJoinChatListWidget->count() > 0 && ui->HJoinChatListWidget->currentItem() != NULL) {
+        qDebug() << ui->HJoinChatListWidget->count();
         QString chatName = ui->HJoinChatListWidget->currentItem()->text();
-        qDebug()<<chatName;
+        qDebug() << chatName;
 
         //打开聊天界面
         Chat * userChat = new Chat(chatName);
@@ -61,8 +66,7 @@ void ChatList::on_OpenChatButton_clicked()
 
 void ChatList::on_JoinButton_clicked()
 {
-    if(ui->UJoinChatListWidget->count()>0)
-    {
+    if (ui->HJoinChatListWidget->count() > 0 && ui->HJoinChatListWidget->currentItem() != NULL) {
         QString chatName = ui->UJoinChatListWidget->currentItem()->text();
         core->joinChatroomRequest(chatName, core->currentUserName);
         refreshChatList();
