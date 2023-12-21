@@ -1,5 +1,5 @@
 #include "chat.h"
-
+#include <QGraphicsDropShadowEffect>
 Chat::Chat(const QString &chatName, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Chat),
@@ -7,15 +7,25 @@ Chat::Chat(const QString &chatName, QWidget *parent) :
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_QuitOnClose,false); //关闭窗口时不退出程序
-    this->setWindowTitle("当前聊天:" + currentChatName);
+    ui->chatNamelabel->setText("当前聊天:" + currentChatName);
 
     // 获取核心实例
     core = &ClientCore::getInstance();
 
+    this->setWindowFlags(Qt::FramelessWindowHint);//去除标题栏
+    this->setAttribute(Qt::WA_TranslucentBackground);//透明
+    //绘制阴影
+    QGraphicsDropShadowEffect * shadowEffect = new QGraphicsDropShadowEffect();
+    shadowEffect->setOffset(0, 0);
+    shadowEffect->setColor(QColor(QStringLiteral("black")));
+    shadowEffect->setBlurRadius(10);
+    this->setGraphicsEffect(shadowEffect);
     // 群头像
     QString picPath = ":/pic/"+QString::number(QRandomGenerator::global()->bounded(10))+".jpg";
     qDebug()<<picPath;
     ui->Imagelabel->setPixmap(QPixmap(picPath));
+    //设置关闭按钮
+    ui->CloseButton->setIcon(QPixmap(":/icon/icon/close.png"));
 
     latestMessageID = 0;
 
@@ -96,4 +106,12 @@ void Chat::on_SendButton_clicked()
     ui->MessageInput->clear();
 
     refreshChat();
+}
+void Chat::mousePressEvent(QMouseEvent * event)
+{
+    diff_pos = this->pos()-event->globalPos();
+}
+void Chat::mouseMoveEvent(QMouseEvent *event)
+{
+    this->move(event->globalPos()+diff_pos);
 }

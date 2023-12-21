@@ -1,5 +1,6 @@
 #include "chatlist.h"
 #include <QWidget>
+#include <QGraphicsDropShadowEffect>
 ChatList::ChatList(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ChatList)
@@ -11,11 +12,17 @@ ChatList::ChatList(QWidget *parent) :
 
     this->setWindowFlags(Qt::FramelessWindowHint);//去除标题栏
     this->setAttribute(Qt::WA_TranslucentBackground);//透明
+    //绘制阴影
+    QGraphicsDropShadowEffect * shadowEffect = new QGraphicsDropShadowEffect();
+    shadowEffect->setOffset(0, 0);
+    shadowEffect->setColor(QColor(QStringLiteral("black")));
+    shadowEffect->setBlurRadius(10);
+    this->setGraphicsEffect(shadowEffect);
     //设置该聊天窗口的标题-----用户名
     ui->UserNameLabel->setText("当前用户：" + core->currentUserName);
     //设置背景
-    QString qss = "#frame{border-image:url(:/pic/listback"+QString::number(QRandomGenerator::global()->bounded(4))+".jpg)}";
-    ui->frame->setStyleSheet(qss);
+    //QString qss = "#frame{border-image:url(:/pic/listback"+QString::number(QRandomGenerator::global()->bounded(4))+".jpg)}";
+    //ui->frame->setStyleSheet(qss);
     //设置关闭按钮
     ui->closeButton->setIcon(QPixmap(":/icon/icon/close.png"));
     // 刷新列表

@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "loginwindow.h"
 #include <QMouseEvent>
+#include <QGraphicsDropShadowEffect>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -9,6 +10,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     this->setWindowFlags(Qt::FramelessWindowHint);//去除标题栏
     this->setAttribute(Qt::WA_TranslucentBackground);//透明
+    //绘制阴影
+    QGraphicsDropShadowEffect * shadowEffect = new QGraphicsDropShadowEffect();
+    shadowEffect->setOffset(0, 0);
+    shadowEffect->setColor(QColor(QStringLiteral("black")));
+    shadowEffect->setBlurRadius(10);
+    this->setGraphicsEffect(shadowEffect);
 
     // 获取核心实例
     core = &ClientCore::getInstance();

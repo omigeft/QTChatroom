@@ -6,6 +6,7 @@
 #include <QString>
 #include <QRandomGenerator>
 #include <QDebug>
+#include <QMouseEvent>
 #include <QDateTime>
 #include <QTimer>
 #include "ui_chat.h"
@@ -37,6 +38,9 @@ private:
     QString currentChatName;
     QStringList userList;
     QStringList chatHistory;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    QPoint diff_pos;
 
     int latestMessageID;
     QTimer *timer;

@@ -21,21 +21,25 @@
   </property>
   <property name="styleSheet">
    <string notr="true">#frame{
-border：none;
+border: 1px solid rgb(41, 57, 85);
 border-radius: 10px;
+border-color:#dcdee0;
+background-color: rgba(255, 255, 255,0.9);
 }
 QLabel{
-color:rgb(255, 255, 255)
+color:rgb(0, 0, 0)
 }
-QPushButton{
-color:#ffffff;
-font:75 10pt &quot;Microsoft YaHei UI&quot;;
-background:rgba(0,0,0,0.4);
-border: 1px solid rgba(0, 0, 0,0.8);
-border-radius: 2px;
+QPushButton {
+background-color:#030408;
+color:#db9a45;
+font:9pt &quot;Microsoft YaHei UI&quot;;
+border-radius:5px;
+font-weight:650;
+height:25px;
+width: 80%;
 }
 QPushButton:hover {
-background: rgba(0,0,0,0.2);
+background-color: #383a3e;
 }
 QListWidget{
 background:rgba(255,255,255,0.7);
@@ -152,7 +156,16 @@ background: rgba(255,255,255,0.7);
            <widget class="QLineEdit" name="ChatNameInput">
             <property name="styleSheet">
              <string notr="true">QLineEdit{
-background:rgba(255,255,255,0.6);
+border: 1px solid rgb(41, 57, 85);
+border-radius: 3px;
+border-color:#dcdee0;
+background: rgba(255,255,255,0.6);
+padding-left: 12px;
+padding-right: 12px;
+border-color:#e4e5eb;
+}
+QLineEdit:hover {
+border-color: #db9a45;
 }</string>
             </property>
            </widget>

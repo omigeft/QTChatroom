@@ -3,6 +3,7 @@
 #include "mainwindow.h"
 #include "chatlist.h"
 #include <QPainter>
+#include <QGraphicsDropShadowEffect>
 LoginWindow::LoginWindow(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::LoginWindow)
@@ -10,6 +11,12 @@ LoginWindow::LoginWindow(QWidget *parent) :
     ui->setupUi(this);
     this->setWindowFlags(Qt::FramelessWindowHint);//去除标题栏
     this->setAttribute(Qt::WA_TranslucentBackground);//透明
+    //绘制阴影
+    QGraphicsDropShadowEffect * shadowEffect = new QGraphicsDropShadowEffect();
+    shadowEffect->setOffset(0, 0);
+    shadowEffect->setColor(QColor(QStringLiteral("black")));
+    shadowEffect->setBlurRadius(10);
+    this->setGraphicsEffect(shadowEffect);
     // 获取核心实例
     core = &ClientCore::getInstance();
 }
