@@ -34,6 +34,9 @@ font-weight:700;
 height:30px;
 width: 100%;
 }
+QPushButton:disabled {
+background-color: #787a7e;
+}
 QPushButton:hover {
 background-color: #383a3e;
 }

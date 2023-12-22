@@ -19,6 +19,8 @@ public:
 private slots:
     void onUserDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
     void onChatDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
+    void on_FindUserButton_clicked();
+    void on_FindChatButton_clicked();
     void on_NewUserButton_clicked();
     void on_NewChatButton_clicked();
     void on_DeleteUserButton_clicked();

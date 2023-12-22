@@ -37,10 +37,10 @@ ChatList::ChatList(QWidget *parent) :
     // 刷新列表
     refreshChatList();
 
-    // 每隔10秒重复刷新一次聊天室列表
+    // 每隔5秒重复刷新一次聊天室列表
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &ChatList::refreshChatList);
-    timer->start(10000);
+    timer->start(5000);
 }
 
 ChatList::~ChatList() {
@@ -87,7 +87,7 @@ void ChatList::on_OpenChatButton_clicked() {
 }
 
 void ChatList::on_JoinButton_clicked() {
-    if (ui->HJoinChatListWidget->count() > 0 && ui->HJoinChatListWidget->currentItem() != NULL) {
+    if (ui->UJoinChatListWidget->count() > 0 && ui->UJoinChatListWidget->currentItem() != NULL) {
         QString chatName = ui->UJoinChatListWidget->currentItem()->text();
         core->joinChatroomRequest(chatName, core->currentUserName);
         refreshChatList();

@@ -21,23 +21,15 @@ AdminManagement::AdminManagement(QWidget *parent) :
     ui->UserTable->setModel(core->userTableModel);
     ui->ChatTable->setModel(core->chatTableModel);
 
-    ui->FindUserButton->setEnabled(false);
-    ui->DeleteUserButton->setEnabled(false);
+    ui->UserTable->setColumnWidth(3, 160);
+    ui->UserTable->setColumnWidth(4, 160);
+    ui->ChatTable->setColumnWidth(3, 160);
+    ui->ChatTable->setColumnWidth(4, 160);
 
-    ui->FindChatButton->setEnabled(false);
+    ui->DeleteUserButton->setEnabled(false);
     ui->DeleteChatButton->setEnabled(false);
     ui->ManageUserButton->setEnabled(false);
     ui->ManageChatButton->setEnabled(false);
-
-    // 如果ui->UserInput编辑了不为空，则激活ui->FindUserButton
-    connect(ui->UserInput, &QLineEdit::textChanged, [=](){
-        ui->FindUserButton->setEnabled(!ui->UserInput->text().isEmpty());
-    });
-
-    // 如果ui->ChatInput编辑了不为空，则激活ui->FindChatButton
-    connect(ui->ChatInput, &QLineEdit::textChanged, [=](){
-        ui->FindChatButton->setEnabled(!ui->ChatInput->text().isEmpty());
-    });
 
     // 如果ui->UserTable至少选中了一行，则激活ui->DeleteUserButton
     connect(ui->UserTable->selectionModel(), &QItemSelectionModel::selectionChanged, [=](){
@@ -59,30 +51,6 @@ AdminManagement::AdminManagement(QWidget *parent) :
 
     connect(core->userTableModel, &QSqlTableModel::dataChanged, this, &AdminManagement::onUserDataChanged);
     connect(core->chatTableModel, &QSqlTableModel::dataChanged, this, &AdminManagement::onChatDataChanged);
-
-    //设置表格数据区内的所有单元格都不允许编辑
-//    ui->UserTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-//    ui->ChatTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-//     //行头自适应表格
-//    ui->UserTable->horizontalHeader()->setStretchLastSection(true);
-//    ui->ChatTable->horizontalHeader()->setStretchLastSection(true);
-//    //设置表格中每一行的表头
-//    ui->UserTable->setHorizontalHeaderLabels(QStringList() << "ID" << "用户名" << "密码"<<"注册时间");
-//    ui->ChatTable->setHorizontalHeaderLabels(QStringList() << "ID" << "名称" << "创建者ID"<<"创建时间");
-
-//    //测试使用
-//    insertUserIitem(0,0,"C语言");
-//    insertUserIitem(0,1,"http://c.tian.net/c/");
-//    insertUserIitem(0,2,"已更新");
-//    insertUserIitem(0,3,"更新");
-
-//    insertChatIitem(0,0,"1234");
-//    insertChatIitem(0,1,"567123456464");
-//    insertChatIitem(0,2,"8");
-//    insertChatIitem(0,3,"9");
-//    insertChatIitem(1,0,"134");
-//    insertChatIitem(1,1,"");
-//    insertChatIitem(2,0,"124");
 }
 
 AdminManagement::~AdminManagement() {
@@ -94,6 +62,18 @@ void AdminManagement::onUserDataChanged(const QModelIndex &topLeft, const QModel
 }
 
 void AdminManagement::onChatDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles) {
+    core->chatTableModel->select();
+}
+
+void AdminManagement::on_FindUserButton_clicked() {
+    QString userName = ui->UserInput->text();
+    core->userTableModel->setFilter(QString("u_name LIKE '%%1%'").arg(userName));
+    core->userTableModel->select();
+}
+
+void AdminManagement::on_FindChatButton_clicked() {
+    QString chatName = ui->ChatInput->text();
+    core->chatTableModel->setFilter(QString("c_name LIKE '%%1%'").arg(chatName));
     core->chatTableModel->select();
 }
 

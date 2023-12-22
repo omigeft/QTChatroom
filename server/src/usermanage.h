@@ -17,14 +17,9 @@ public:
     ~UserManage();
 
 private slots:
-    void on_ChangeButton_clicked();
-
-    void on_DeleteButton_clicked();
-
     void on_FindButton_clicked();
 
-private:
-    void insertUserIitem(int row, int column, const QString &content);
+    void on_DeleteButton_clicked();
 
 private:
     QString Roomname;

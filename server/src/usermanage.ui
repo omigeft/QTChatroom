@@ -29,6 +29,9 @@ font-weight:700;
 height:30px;
 width: 100%;
 }
+QPushButton:disabled {
+background-color: #787a7e;
+}
 QPushButton:hover {
 background-color: #383a3e;
 }
@@ -60,23 +63,16 @@ border-color: #db9a45;
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="ChangeButton">
+      <widget class="QPushButton" name="FindButton">
        <property name="text">
-        <string>修改</string>
+        <string>查询</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="DeleteButton">
        <property name="text">
-        <string>删除选中</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="FindButton">
-       <property name="text">
-        <string>查询</string>
+        <string>移出选中用户</string>
        </property>
       </widget>
      </item>
@@ -136,9 +132,8 @@ border-color: #db9a45;
  </widget>
  <tabstops>
   <tabstop>ContentInput</tabstop>
-  <tabstop>ChangeButton</tabstop>
-  <tabstop>DeleteButton</tabstop>
   <tabstop>FindButton</tabstop>
+  <tabstop>DeleteButton</tabstop>
   <tabstop>UserTable</tabstop>
  </tabstops>
  <resources/>

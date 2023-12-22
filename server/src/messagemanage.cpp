@@ -3,8 +3,7 @@
 #include <QMessageBox>
 MessageManage::MessageManage(const QString &name, const QString &id, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::MessageManage)
-{
+    ui(new Ui::MessageManage) {
     ui->setupUi(this);
 
     Roomname = name;
@@ -36,6 +35,7 @@ MessageManage::MessageManage(const QString &name, const QString &id, QWidget *pa
     chatMessageTableModel->setHeaderData(4, Qt::Horizontal, "内容");
 
     ui->MessageTable->setModel(chatMessageTableModel);
+    ui->MessageTable->setColumnWidth(4, 160);
 
     //伴随父窗口关闭
 //    setAttribute(Qt::WA_QuitOnClose,false);
@@ -56,39 +56,26 @@ MessageManage::MessageManage(const QString &name, const QString &id, QWidget *pa
 //    insertMessageIitem(3,3,"内容3");
 }
 
-MessageManage::~MessageManage()
-{
+MessageManage::~MessageManage() {
     delete ui;
 }
 
-void MessageManage::insertMessageIitem(int row, int column, const QString &content)
-{
-//    ui->MessageTable->setItem(row,column,new QTableWidgetItem(content));
+void MessageManage::on_FindUserButton_clicked() {
+    QString userName = ui->ContentInput->text();
+    chatMessageTableModel->setFilter(QString("u_name LIKE '%%1%'").arg(userName));
+    chatMessageTableModel->select();
 }
 
-void MessageManage::on_DeleteButton_clicked()
-{
+void MessageManage::on_FindContentButton_clicked() {
+    QString content = ui->ContentInput->text();
+    chatMessageTableModel->setFilter(QString("m_text LIKE '%%1%'").arg(content));
+    chatMessageTableModel->select();
+}
+
+void MessageManage::on_DeleteButton_clicked() {
 //    if(QMessageBox::Yes==QMessageBox::question(this,"再次确认","再次确认是否删除")){
 //        int curRow=ui->MessageTable->currentRow();     //当前行号
 //        ui->MessageTable->removeRow(curRow);           //删除当前行及其items
 //    }
     //发送删除信息
-}
-
-void MessageManage::on_FindButton_clicked()
-{
-//    QList<QTableWidgetItem *> findItemsList = ui->MessageTable->findItems(ui->ContentInput->text(),Qt::MatchContains);
-//    if (ui->ContentInput->text()==""){//判断是否是空，如果是空就显示所有行
-//       for(int i=0;i<ui->MessageTable->rowCount();i++)
-//           ui->MessageTable->setRowHidden(i,false);//为false就是显示
-//    }
-//    else{
-//    //然后把所有行都隐藏
-//    for(int i=0;i<ui->MessageTable->rowCount();i++)
-//        ui->MessageTable->setRowHidden(i,true);//隐藏
-//    //判断符合条件索引是不是空
-//    if(!findItemsList.empty())//恢复对应的行
-//      for(int i=0;i<findItemsList.count();i++)
-//         ui->MessageTable->setRowHidden(findItemsList.at(i)->row(),false);//回复对应的行，也可以回复列
-//    }
 }

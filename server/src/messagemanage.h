@@ -17,14 +17,11 @@ public:
     ~MessageManage();
 
 private slots:
+    void on_FindUserButton_clicked();
+
+    void on_FindContentButton_clicked();
+
     void on_DeleteButton_clicked();
-
-    void on_FindButton_clicked();
-
-private:
-    void insertMessageIitem(int row, int column, const QString &content);
-
-    void refreshChatMessageTable();
 
 private:
     QString Roomname;

@@ -91,6 +91,7 @@ bool ServerCore::createDatabase(const QString &rootUserName, const QString &pass
         "m_u_id  INT NOT NULL,"                 // user id
         "m_c_id  INT NOT NULL,"                 // chatroom id
         "m_t     DATETIME,"                     // message time
+        "m_db_t  DATETIME,"                     // message drawback time
         "m_text  TEXT,"                         // message text
         "FOREIGN KEY(m_u_id) REFERENCES user(u_id),"
         "FOREIGN KEY(m_c_id) REFERENCES chatroom(c_id));"
@@ -160,6 +161,36 @@ bool ServerCore::createDatabase(const QString &rootUserName, const QString &pass
         return false;
     }
 
+    // 创建触发器，root超级管理员不能被删除
+    query.exec(
+        "CREATE TRIGGER IF NOT EXISTS check_root "
+        "BEFORE DELETE ON user "
+        "FOR EACH ROW "
+        "WHEN OLD.role = 'root' "
+        "BEGIN "
+        "   SELECT RAISE(FAIL, 'root user cannot be deleted'); "
+        "END; "
+        );
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
+
+    // 创建触发器，聊天室名长度限制1-20个字符之间
+    query.exec(
+        "CREATE TRIGGER IF NOT EXISTS check_c_name_length "
+        "BEFORE INSERT ON chatroom "
+        "FOR EACH ROW "
+        "WHEN LENGTH(NEW.c_name) < 1 OR LENGTH(NEW.c_name) > 20 "
+        "BEGIN "
+        "   SELECT RAISE(FAIL, 'c_name must be between 1 and 20 characters'); "
+        "END; "
+        );
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return false;
+    }
+
     query.exec("SELECT MAX(u_id) FROM user;");
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
@@ -209,8 +240,6 @@ bool ServerCore::createDatabase(const QString &rootUserName, const QString &pass
 
     userTableModel = new QSqlTableModel;
     userTableModel->setTable("user"); // 替换为你的表名
-    //userTableModel->setEditStrategy(QSqlTableModel::OnFieldChange);    // 在界面上修改后数据立刻保存到数据库
-    userTableModel->setEditStrategy(QSqlTableModel::OnManualSubmit);   // 将将编辑数据库中值的策略设置为[在调用 submitAll() 或 revertAll() 之前，所有更改都将缓存在模型中（即在界面上修改数据后不会立刻存入数据库）]
     userTableModel->select(); // 执行查询以加载数据
     userTableModel->setHeaderData(0, Qt::Horizontal, "用户ID");
     userTableModel->setHeaderData(1, Qt::Horizontal, "用户名");
@@ -221,8 +250,6 @@ bool ServerCore::createDatabase(const QString &rootUserName, const QString &pass
 
     chatTableModel = new QSqlTableModel;
     chatTableModel->setTable("chatroom"); // 替换为你的表名
-    //chatTableModel->setEditStrategy(QSqlTableModel::OnFieldChange);    // 在界面上修改后数据立刻保存到数据库
-    chatTableModel->setEditStrategy(QSqlTableModel::OnManualSubmit);   // 将将编辑数据库中值的策略设置为[在调用 submitAll() 或 revertAll() 之前，所有更改都将缓存在模型中（即在界面上修改数据后不会立刻存入数据库）]
     chatTableModel->select(); // 执行查询以加载数据
     chatTableModel->setHeaderData(0, Qt::Horizontal, "聊天室ID");
     chatTableModel->setHeaderData(1, Qt::Horizontal, "聊天室名");
@@ -419,10 +446,10 @@ QJsonArray ServerCore::getJoinedChatList(const QString &userName) {
 
     // 查询该用户已加入的所有聊天室
     query.exec(QString(
-        "SELECT c_name FROM user_chatroom "
-        "INNER JOIN chatroom ON user_chatroom.c_id = chatroom.c_id "
-        "INNER JOIN user ON user_chatroom.u_id = user.u_id "
-        "WHERE u_name = '%1';")
+        "SELECT c_name FROM user_chatroom uc "
+        "INNER JOIN chatroom c ON uc.c_id = c.c_id "
+        "INNER JOIN user u ON uc.u_id = u.u_id "
+        "WHERE u_name = '%1' AND q_t IS NULL;")
         .arg(userName));
     if (query.lastError().isValid()) {
         qDebug() << "When getJoinedChatList: " << query.lastError();
@@ -444,10 +471,10 @@ QJsonArray ServerCore::getUnjoinedChatList(const QString &userName) {
     query.exec(QString(
         "SELECT c_name FROM chatroom "
         "WHERE c_id NOT IN "
-        "(SELECT user_chatroom.c_id FROM user_chatroom "
-        "INNER JOIN chatroom ON user_chatroom.c_id = chatroom.c_id "
-        "INNER JOIN user ON user_chatroom.u_id = user.u_id "
-        "WHERE u_name = '%1');")
+        "(SELECT uc.c_id FROM user_chatroom uc "
+        "INNER JOIN chatroom c ON uc.c_id = c.c_id "
+        "INNER JOIN user u ON uc.u_id = u.u_id "
+        "WHERE u_name = '%1' AND q_t IS NULL);")
         .arg(userName));
     if (query.lastError().isValid()) {
         qDebug() << "When getUnjoinedChatList: " << query.lastError();
@@ -547,7 +574,7 @@ bool ServerCore::sendMessage(const QString &chatName, const QString &senderName,
 
     // 插入消息 m_id, m_u_id, m_c_id, m_t, m_text
     query.exec(QString(
-        "INSERT INTO message (m_id, m_u_id, m_c_id, m_t, m_text) "
+        "INSERT INTO message (m_id, m_u_id, m_c_id, m_t, m_db_t, m_text) "
         "VALUES (%1,%2,%3,'%4','%5');")
         .arg(++maxMessageNumber)
         .arg(senderID)

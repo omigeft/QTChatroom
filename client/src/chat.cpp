@@ -39,10 +39,10 @@ Chat::Chat(const QString &chatName, QWidget *parent) :
     connect(timer, &QTimer::timeout, this, &Chat::refreshChat);
     timer->start(1000);
 
-    // 每隔10秒重复刷新一次聊天室成员列表
+    // 每隔5秒重复刷新一次聊天室成员列表
     QTimer *timer2 = new QTimer(this);
     connect(timer2, &QTimer::timeout, this, &Chat::refreshUserList);
-    timer2->start(10000);
+    timer2->start(5000);
 }
 
 Chat::~Chat()

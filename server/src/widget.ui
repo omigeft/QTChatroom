@@ -36,6 +36,9 @@ font-weight:700;
 height:44px;
 width: 100%;
 }
+QPushButton:disabled {
+background-color: #787a7e;
+}
 QPushButton:hover {
 background-color: #383a3e;
 }
@@ -161,7 +164,7 @@ border-color: #db9a45;
         <item>
          <widget class="QPushButton" name="LoginButton">
           <property name="text">
-           <string>创建</string>
+           <string>建立</string>
           </property>
          </widget>
         </item>
