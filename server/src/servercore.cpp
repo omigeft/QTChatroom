@@ -191,6 +191,39 @@ bool ServerCore::createDatabase(const QString &rootUserName, const QString &pass
         return false;
     }
 
+    // 创建触发器，用户注册时间不能晚于注销时间
+    query.exec(
+        "CREATE TRIGGER IF NOT EXISTS check_u_t "
+        "BEFORE INSERT ON user "
+        "FOR EACH ROW "
+        "WHEN NEW.su_t > NEW.sd_t "
+        "BEGIN "
+        "   SELECT RAISE(FAIL, 'su_t must be earlier than sd_t'); "
+        "END; "
+        );
+
+    // 创建触发器，聊天室创建时间不能晚于注销时间
+    query.exec(
+        "CREATE TRIGGER IF NOT EXISTS check_c_t "
+        "BEFORE INSERT ON chatroom "
+        "FOR EACH ROW "
+        "WHEN NEW.cr_t > NEW.ds_t "
+        "BEGIN "
+        "   SELECT RAISE(FAIL, 'cr_t must be earlier than ds_t'); "
+        "END; "
+        );
+
+    // 创建触发器，消息发送时间不能晚于撤回时间
+    query.exec(
+        "CREATE TRIGGER IF NOT EXISTS check_m_t "
+        "BEFORE INSERT ON message "
+        "FOR EACH ROW "
+        "WHEN NEW.m_t > NEW.m_db_t "
+        "BEGIN "
+        "   SELECT RAISE(FAIL, 'm_t must be earlier than m_db_t'); "
+        "END; "
+        );
+
     query.exec("SELECT MAX(u_id) FROM user;");
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
