@@ -337,7 +337,7 @@ bool ServerCore::loginAccount(QTcpSocket *socket, const QString &userName, const
     QSqlQuery query;
 
     // 检查用户名是否已存在
-    query.exec(QString("SELECT u_name FROM user WHERE u_name = '%1';").arg(userName));
+    query.exec(QString("SELECT u_name FROM user WHERE u_name = '%1' AND sd_t IS NULL;").arg(userName));
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
         return false;
@@ -381,7 +381,7 @@ bool ServerCore::createChatroom(const QString &chatroomName, const QString &user
     }
 
     // 检查用户名是否已存在
-    query.exec(QString("SELECT u_id FROM user WHERE u_name = '%1';").arg(userName));
+    query.exec(QString("SELECT u_id FROM user WHERE u_name = '%1' AND sd_t IS NULL;").arg(userName));
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
         return false;
@@ -431,7 +431,7 @@ bool ServerCore::joinChatroom(const QString &chatroomName, const QString &userNa
     QSqlQuery query;
 
     // 检查聊天室名是否已存在
-    query.exec(QString("SELECT c_id FROM chatroom WHERE c_name = '%1';").arg(chatroomName));
+    query.exec(QString("SELECT c_id FROM chatroom WHERE c_name = '%1' AND ds_t IS NULL;").arg(chatroomName));
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
         return false;
@@ -444,7 +444,7 @@ bool ServerCore::joinChatroom(const QString &chatroomName, const QString &userNa
     int chatroomID = query.value(0).toInt();
 
     // 检查用户名是否已存在
-    query.exec(QString("SELECT u_id FROM user WHERE u_name = '%1';").arg(userName));
+    query.exec(QString("SELECT u_id FROM user WHERE u_name = '%1' AND sd_t IS NULL;").arg(userName));
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
         return false;
@@ -482,7 +482,7 @@ QJsonArray ServerCore::getJoinedChatList(const QString &userName) {
         "SELECT c_name FROM user_chatroom uc "
         "INNER JOIN chatroom c ON uc.c_id = c.c_id "
         "INNER JOIN user u ON uc.u_id = u.u_id "
-        "WHERE u_name = '%1' AND q_t IS NULL;")
+        "WHERE u_name = '%1' AND q_t IS NULL AND ds_t IS NULL;")
         .arg(userName));
     if (query.lastError().isValid()) {
         qDebug() << "When getJoinedChatList: " << query.lastError();
@@ -507,7 +507,8 @@ QJsonArray ServerCore::getUnjoinedChatList(const QString &userName) {
         "(SELECT uc.c_id FROM user_chatroom uc "
         "INNER JOIN chatroom c ON uc.c_id = c.c_id "
         "INNER JOIN user u ON uc.u_id = u.u_id "
-        "WHERE u_name = '%1' AND q_t IS NULL);")
+        "WHERE u_name = '%1' AND q_t IS NULL AND ds_t IS NULL AND sd_t IS NULL) "
+        "AND ds_t IS NULL;")
         .arg(userName));
     if (query.lastError().isValid()) {
         qDebug() << "When getUnjoinedChatList: " << query.lastError();
@@ -530,7 +531,7 @@ QJsonArray ServerCore::getChatUserList(const QString &chatName) {
         "SELECT u_name FROM user_chatroom "
         "INNER JOIN chatroom ON user_chatroom.c_id = chatroom.c_id "
         "INNER JOIN user ON user_chatroom.u_id = user.u_id "
-        "WHERE c_name = '%1';")
+        "WHERE c_name = '%1' AND ds_t IS NULL AND sd_t IS NULL;")
         .arg(chatName));
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
@@ -553,7 +554,7 @@ QJsonArray ServerCore::getMessage(const QString &chatName, const int latestMessa
         "SELECT m_id, u_name, m_text, m_t FROM message "
         "INNER JOIN user ON message.m_u_id = user.u_id "
         "INNER JOIN chatroom ON message.m_c_id = chatroom.c_id "
-        "WHERE c_name = '%1' AND m_id > %2 AND m_db_t IS NULL "
+        "WHERE c_name = '%1' AND m_id > %2 AND m_db_t IS NULL AND ds_t IS NULL "
         "ORDER BY message.m_t ASC;")
         .arg(chatName)
         .arg(latestMessageID));
@@ -575,7 +576,7 @@ QJsonArray ServerCore::getMessage(const QString &chatName, const int latestMessa
     query.exec(QString(
         "SELECT m_id FROM message "
         "INNER JOIN chatroom ON message.m_c_id = chatroom.c_id "
-        "WHERE c_name = '%1' AND m_db_t IS NOT NULL AND m_db_t >= '%2';")
+        "WHERE c_name = '%1' AND m_db_t IS NOT NULL AND m_db_t >= '%2' AND ds_t IS NULL;")
         .arg(chatName)
         .arg(lastTime));
     if (query.lastError().isValid()) {
@@ -612,7 +613,7 @@ bool ServerCore::sendMessage(const QString &chatName, const QString &senderName,
 
     // 查询该用户的 ID
     query.exec(QString(
-        "SELECT u_id FROM user WHERE u_name = '%1';")
+        "SELECT u_id FROM user WHERE u_name = '%1' AND sd_t IS NULL;")
         .arg(senderName));
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();

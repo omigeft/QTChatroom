@@ -80,7 +80,7 @@ void AdminManagement::on_FindChatButton_clicked() {
 void AdminManagement::on_NewUserButton_clicked() {
     core->registerAccount(
         QString("User_%1").arg(core->maxUserNumber + 1),
-        QString("Password_%1").arg(core->maxUserNumber),
+        QString("Password_%1").arg(core->maxUserNumber + 1),
         "user");
 }
 
@@ -102,7 +102,8 @@ void AdminManagement::on_DeleteUserButton_clicked() {
     for (const QModelIndex &index : selectedRows) {
         index_0 = ui->UserTable->model()->index(index.row(), 0);
         userID = ui->UserTable->model()->data(index_0).toInt();
-        query.prepare("DELETE FROM user WHERE u_id = :id");
+        query.prepare("UPDATE user SET sd_t = :time WHERE u_id = :id");
+        query.bindValue(":time", QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
         query.bindValue(":id", userID);
         query.exec();
         if (query.lastError().isValid()) {
@@ -135,7 +136,8 @@ void AdminManagement::on_DeleteChatButton_clicked() {
     for (const QModelIndex &index : selectedRows) {
         index_0 = ui->ChatTable->model()->index(index.row(), 0);
         chatID = ui->ChatTable->model()->data(index_0).toInt();
-        query.prepare("DELETE FROM chatroom WHERE c_id = :id");
+        query.prepare("UPDATE chatroom SET ds_t = :time WHERE c_id = :id");
+        query.bindValue(":time", QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
         query.bindValue(":id", chatID);
         query.exec();
         if (query.lastError().isValid()) {

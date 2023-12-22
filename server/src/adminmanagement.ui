@@ -58,7 +58,7 @@ border-color: #db9a45;
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="UserManageTab">
       <attribute name="title">
@@ -90,7 +90,7 @@ border-color: #db9a45;
          <item>
           <widget class="QPushButton" name="DeleteUserButton">
            <property name="text">
-            <string>删除选中用户</string>
+            <string>注销选中用户</string>
            </property>
           </widget>
          </item>
@@ -132,14 +132,14 @@ border-color: #db9a45;
          <item>
           <widget class="QPushButton" name="DeleteChatButton">
            <property name="text">
-            <string>删除选中聊天</string>
+            <string>解散选中群聊</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="NewChatButton">
            <property name="text">
-            <string>新增聊天</string>
+            <string>新增群聊</string>
            </property>
           </widget>
          </item>
