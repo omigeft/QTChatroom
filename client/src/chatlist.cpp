@@ -1,4 +1,5 @@
 #include "chatlist.h"
+#include "messagebox.h"
 #include <QWidget>
 #include <QGraphicsDropShadowEffect>
 ChatList::ChatList(QWidget *parent) :
@@ -83,6 +84,8 @@ void ChatList::on_OpenChatButton_clicked() {
         Chat * userChat = new Chat(chatName);
         userChat->show();
         core->nameChatMap.insert(chatName, userChat);
+    } else {
+        MessageBox::critical(this, "错误", "打开失败，请检查是否选中聊天室");
     }
 }
 
@@ -91,6 +94,8 @@ void ChatList::on_JoinButton_clicked() {
         QString chatName = ui->UJoinChatListWidget->currentItem()->text();
         core->joinChatroomRequest(chatName, core->currentUserName);
         refreshChatList();
+    } else {
+        MessageBox::critical(this, "错误", "加入失败，请检查是否选中聊天室");
     }
 }
 
@@ -100,7 +105,7 @@ void ChatList::on_NewChatButton_clicked() {
         core->createChatroomRequest(chatName, core->currentUserName);
         refreshChatList();
     } else {
-        QMessageBox::information(this,"群聊名有误","群聊名长度应在1~20个字符之间");
+        QMessageBox::critical(this, "错误", "群聊名长度应在1~20个字符之间");
     }
 }
 

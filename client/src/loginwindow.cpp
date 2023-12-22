@@ -2,12 +2,12 @@
 #include "ui_loginwindow.h"
 #include "mainwindow.h"
 #include "chatlist.h"
+#include "messagebox.h"
 #include <QPainter>
 #include <QGraphicsDropShadowEffect>
 LoginWindow::LoginWindow(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::LoginWindow)
-{
+    ui(new Ui::LoginWindow) {
     ui->setupUi(this);
     this->setWindowFlags(Qt::FramelessWindowHint);//去除标题栏
     this->setAttribute(Qt::WA_TranslucentBackground);//透明
@@ -23,19 +23,20 @@ LoginWindow::LoginWindow(QWidget *parent) :
     core = &ClientCore::getInstance();
 }
 
-LoginWindow::~LoginWindow()
-{
+LoginWindow::~LoginWindow() {
     delete ui;
 }
 
-void LoginWindow::on_CloseButton_clicked()
-{
+void LoginWindow::on_CloseButton_clicked() {
     this->close();
 }
 
-void LoginWindow::on_RegisterButton_clicked()
-{
-    core->registerRequest(ui->NameInput->text(), ui->PassWordInput->text(), "user");
+void LoginWindow::on_RegisterButton_clicked() {
+    if (core->registerRequest(ui->NameInput->text(), ui->PassWordInput->text(), "user")) {
+        MessageBox::information(this, "提示", "注册成功");
+    } else {
+        MessageBox::critical(this, "错误", "注册失败");
+    }
 }
 
 void LoginWindow::on_LoginButton_clicked()
@@ -45,21 +46,22 @@ void LoginWindow::on_LoginButton_clicked()
         ChatList * userChatList = new ChatList();
         this->close();
         userChatList->show();
+    } else {
+        MessageBox::critical(this, "错误", "登录失败");
     }
 }
-void LoginWindow::paintEvent(QPaintEvent *)
-{
+
+void LoginWindow::paintEvent(QPaintEvent *) {
     QStyleOption opt;
     opt.init(this);
     QPainter p(this);
     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
-
 }
-void LoginWindow::mousePressEvent(QMouseEvent * event)
-{
+
+void LoginWindow::mousePressEvent(QMouseEvent * event) {
     diff_pos = this->pos()-event->globalPos();
 }
-void LoginWindow::mouseMoveEvent(QMouseEvent *event)
-{
+
+void LoginWindow::mouseMoveEvent(QMouseEvent *event) {
     this->move(event->globalPos()+diff_pos);
 }

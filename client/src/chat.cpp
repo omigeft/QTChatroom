@@ -29,6 +29,16 @@ Chat::Chat(const QString &chatName, QWidget *parent) :
     //设置关闭按钮
     ui->CloseButton->setIcon(QPixmap(":/icon/icon/close.png"));
 
+    ui->SendButton->setEnabled(false);
+    // 如果ui->MessageInput长度在1~200之间，激活ui->SendButton
+    connect(ui->MessageInput, &QTextEdit::textChanged, [=]() {
+        if (ui->MessageInput->toPlainText().length() >= 1 && ui->MessageInput->toPlainText().length() <= 200) {
+            ui->SendButton->setEnabled(true);
+        } else {
+            ui->SendButton->setEnabled(false);
+        }
+    });
+
     latestMessageID = 0;
     lastTime = "yyyy-MM-dd hh:mm:ss";
 
@@ -93,7 +103,7 @@ void Chat::refreshChat()
             QString content = message["content"].toString();
             QString time = message["time"].toString();
             chatMessageID.append(id);
-            chatHistory.append(" 用户:" + name + " [" + time + "]\n->" + content);
+            chatHistory.append("用户:" + name + " [" + time + "]\n" + content);
             latestMessageID = std::max(latestMessageID, id);
         }
     }
@@ -117,12 +127,6 @@ void Chat::on_SendButton_clicked()
 {
     // 获取输入的消息
     QString message=ui->MessageInput->toPlainText();
-
-    // 检查消息长度是否在1~200之间
-    if (message.length() < 1 || message.length() > 200) {
-        qDebug() << "消息长度不符合要求";
-        return;
-    }
 
     // 发送消息
     core->sendMessageRequest(currentChatName, core->currentUserName, message);

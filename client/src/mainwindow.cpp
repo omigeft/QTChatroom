@@ -44,8 +44,7 @@ void MainWindow::on_ConnectButton_clicked()
         this->close();
         loginwindow->show();
     } else {
-        // 弹窗错误
-        MessageBox::warning(this, "错误", "连接失败");
+        MessageBox::critical(this, "错误", "连接失败");
     }
 }
 void MainWindow::mousePressEvent(QMouseEvent * event)
