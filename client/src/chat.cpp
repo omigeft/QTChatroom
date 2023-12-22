@@ -30,6 +30,7 @@ Chat::Chat(const QString &chatName, QWidget *parent) :
     ui->CloseButton->setIcon(QPixmap(":/icon/icon/close.png"));
 
     latestMessageID = 0;
+    lastTime = "yyyy-MM-dd hh:mm:ss";
 
     refreshUserList();
     refreshChat();
@@ -69,25 +70,39 @@ void Chat::refreshUserList() {
 void Chat::refreshChat()
 {
     // 从服务器上获取一次最新聊天记录
-    QJsonArray newMessageArray = core->getMessageRequest(currentChatName, latestMessageID);
-
-    // 更新latestMessageID
-    if (newMessageArray.size() > 0) {
-        latestMessageID = newMessageArray[newMessageArray.size() - 1].toObject()["id"].toInt();
-    }
+    QJsonArray newMessageArray = core->getMessageRequest(currentChatName, latestMessageID, lastTime);
 
     // 更新QStringList chatHistory和显示的聊天记录
     for (int i = 0; i < newMessageArray.size(); i++) {
         QJsonObject message = newMessageArray[i].toObject();
-        QString id = QString::number(message["id"].toInt());
-        QString name = message["name"].toString();
-        QString content = message["content"].toString();
-        QString time = message["time"].toString();
-        chatHistory.append("用户:" + name + " [" + time + "]");
-        chatHistory.append("->" + content);
-        ui->chatBrowser->append("用户:" + name + " [" + time + "]");
-        ui->chatBrowser->append("->" + content);
+        if (message["time"].toString().isEmpty()) {
+            // 该条消息是撤回消息，需要在聊天记录中找到该条消息并删除
+            int id = message["id"].toInt();
+            qDebug() << "撤回消息" << id;
+            // 在chatMessageID中调用std二分查找
+            int index = std::lower_bound(chatMessageID.begin(), chatMessageID.end(), id) - chatMessageID.begin();
+            if (index < chatMessageID.size() && chatMessageID[index] == id) {
+                // 找到了该条消息，删除
+                chatMessageID.removeAt(index);
+                chatHistory.removeAt(index);
+            }
+            qDebug() << "成功撤回消息" << id;
+        } else {
+            int id = message["id"].toInt();
+            QString name = message["name"].toString();
+            QString content = message["content"].toString();
+            QString time = message["time"].toString();
+            chatMessageID.append(id);
+            chatHistory.append(" 用户:" + name + " [" + time + "]\n->" + content);
+            latestMessageID = std::max(latestMessageID, id);
+        }
     }
+
+    // 更新lastTime
+    lastTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+
+    // 同步
+    ui->chatBrowser->setPlainText(chatHistory.join("\n"));
 
     // textBrowser自动滚动到最底部
     ui->chatBrowser->moveCursor(QTextCursor::End);

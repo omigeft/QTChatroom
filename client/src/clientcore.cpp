@@ -339,13 +339,14 @@ QJsonArray ClientCore::getChatUserListRequest(const QString &chatName) {
     }
 }
 
-QJsonArray ClientCore::getMessageRequest(const QString &chatName, const int latestMessageID) {
+QJsonArray ClientCore::getMessageRequest(const QString &chatName, const int latestMessageID, const QString &lastTime) {
     QJsonObject jsonObj = baseJsonObj("getMessage", "request");
 
     // 编辑数据字段
     QJsonObject dataObj = jsonObj["data"].toObject();
     dataObj["chatName"] = chatName;
     dataObj["latestMessageID"] = latestMessageID;
+    dataObj["lastTime"] = lastTime;
     jsonObj["data"] = dataObj;
 
     QString response;
@@ -362,6 +363,16 @@ QJsonArray ClientCore::getMessageRequest(const QString &chatName, const int late
 
         if (resDataObj["chatName"].toString() != chatName) {
             qDebug() << "收到响应：聊天室名称不匹配";
+            return QJsonArray();
+        }
+
+        if (resDataObj["latestMessageID"].toInt() != latestMessageID) {
+            qDebug() << "收到响应：最新消息ID不匹配";
+            return QJsonArray();
+        }
+
+        if (resDataObj["lastTime"].toString() != lastTime) {
+            qDebug() << "收到响应：时间不匹配";
             return QJsonArray();
         }
 

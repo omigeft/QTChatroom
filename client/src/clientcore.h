@@ -32,7 +32,7 @@ public:
 
     QJsonArray getChatUserListRequest(const QString &chatName);
 
-    QJsonArray getMessageRequest(const QString &chatName, const int latestMessageID);
+    QJsonArray getMessageRequest(const QString &chatName, const int latestMessageID, const QString &lastTime);
 
     bool sendMessageRequest(const QString &chatName, const QString &senderName, const QString &message);
 

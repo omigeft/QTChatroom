@@ -68,7 +68,7 @@ void UserManage::on_DeleteButton_clicked() {
         index_0 = ui->UserTable->model()->index(index.row(), 0);
         userID = ui->UserTable->model()->data(index_0).toInt();
         query.prepare("UPDATE user_chatroom SET q_t = :quit_time WHERE u_id = :user_id AND c_id = :chatroom_id AND q_t IS NULL;");
-        query.bindValue(":quit_time", QDateTime::currentDateTime());
+        query.bindValue(":quit_time", QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
         query.bindValue(":user_id", userID);
         query.bindValue(":chatroom_id", RoomID);
         query.exec();

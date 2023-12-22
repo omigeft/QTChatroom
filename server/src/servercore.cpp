@@ -511,7 +511,7 @@ QJsonArray ServerCore::getChatUserList(const QString &chatName) {
     return userList;
 }
 
-QJsonArray ServerCore::getMessage(const QString &chatName, const int latestMessageID) {
+QJsonArray ServerCore::getMessage(const QString &chatName, const int latestMessageID, const QString &lastTime) {
     QJsonArray messageList;
     QSqlQuery query;
 
@@ -520,13 +520,13 @@ QJsonArray ServerCore::getMessage(const QString &chatName, const int latestMessa
         "SELECT m_id, u_name, m_text, m_t FROM message "
         "INNER JOIN user ON message.m_u_id = user.u_id "
         "INNER JOIN chatroom ON message.m_c_id = chatroom.c_id "
-        "WHERE c_name = '%1' AND m_id > %2 "
+        "WHERE c_name = '%1' AND m_id > %2 AND m_db_t IS NULL "
         "ORDER BY message.m_t ASC;")
         .arg(chatName)
         .arg(latestMessageID));
     if (query.lastError().isValid()) {
         qDebug() << query.lastError();
-        return messageList;
+        return QJsonArray();
     }
 
     while (query.next()) {
@@ -535,6 +535,25 @@ QJsonArray ServerCore::getMessage(const QString &chatName, const int latestMessa
         message.insert("name", query.value(1).toString());
         message.insert("content", query.value(2).toString());
         message.insert("time", query.value(3).toString());
+        messageList.append(message);
+    }
+
+    // 查询被撤回的消息
+    query.exec(QString(
+        "SELECT m_id FROM message "
+        "INNER JOIN chatroom ON message.m_c_id = chatroom.c_id "
+        "WHERE c_name = '%1' AND m_db_t IS NOT NULL AND m_db_t >= '%2';")
+        .arg(chatName)
+        .arg(lastTime));
+    if (query.lastError().isValid()) {
+        qDebug() << query.lastError();
+        return QJsonArray();
+    }
+
+    while (query.next()) {
+        QJsonObject message;
+        message.insert("id", query.value(0).toInt());
+        message.insert("time", "");
         messageList.append(message);
     }
 
@@ -575,11 +594,12 @@ bool ServerCore::sendMessage(const QString &chatName, const QString &senderName,
     // 插入消息 m_id, m_u_id, m_c_id, m_t, m_text
     query.exec(QString(
         "INSERT INTO message (m_id, m_u_id, m_c_id, m_t, m_db_t, m_text) "
-        "VALUES (%1,%2,%3,'%4','%5');")
+        "VALUES (%1,%2,%3,'%4',%5,'%6');")
         .arg(++maxMessageNumber)
         .arg(senderID)
         .arg(chatID)
         .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"))
+        .arg("NULL")
         .arg(message));
     if (query.lastError().isValid()) {
         --maxMessageNumber;
@@ -618,7 +638,7 @@ bool ServerCore::synchronizationRemind(const QString &chatName, const QString &s
     return true;
 }
 
-void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
+void ServerCore::processReadMessage(QTcpSocket *socket, const QString &message) {
     // 解析JSON字符串
     QJsonDocument jsonDoc = QJsonDocument::fromJson(message.toUtf8());
 
@@ -745,7 +765,11 @@ void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
 
         sendJsonObj(socket, resJsonObj);
     } else if (type == "getMessage") {
-        QJsonArray messageList = getMessage(dataObj["chatName"].toString(), dataObj["latestMessageID"].toInt());
+        QJsonArray messageList = getMessage(
+            dataObj["chatName"].toString(),
+            dataObj["latestMessageID"].toInt(),
+            dataObj["lastTime"].toString()
+        );
 
         qDebug() << "获取聊天室消息成功";
         QJsonObject resJsonObj = baseJsonObj(type, "success");
@@ -753,6 +777,8 @@ void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
         // 编辑数据字段
         QJsonObject resDataObj = resJsonObj["data"].toObject();
         resDataObj["chatName"] = dataObj["chatName"].toString();
+        resDataObj["latestMessageID"] = dataObj["latestMessageID"].toInt();
+        resDataObj["lastTime"] = dataObj["lastTime"].toString();
         resDataObj["messageList"] = messageList;
         resJsonObj["data"] = resDataObj;
 
@@ -780,6 +806,25 @@ void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
     } else {
         qDebug() << "数据报文类型不正确!";
         return;
+    }
+}
+
+void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
+    // 如果包含多个报文，需要分割
+    QStringList messageList = message.split("}{");
+
+    for (int i = 0; i < messageList.size(); i++) {
+        // 如果不是第一个报文，需要加上 {
+        if (i != 0) {
+            messageList[i] = "{" + messageList[i];
+        }
+
+        // 如果不是最后一个报文，需要加上 }
+        if (i != messageList.size() - 1) {
+            messageList[i] = messageList[i] + "}";
+        }
+
+        processReadMessage(socket, messageList[i]);
     }
 }
 

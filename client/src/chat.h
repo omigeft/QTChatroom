@@ -40,11 +40,13 @@ private:
     QString currentChatName;
     QStringList userList;
     QStringList chatHistory;
+    QList<int> chatMessageID;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     QPoint diff_pos;
 
     int latestMessageID;
+    QString lastTime;
     QTimer *timer;
 };
 

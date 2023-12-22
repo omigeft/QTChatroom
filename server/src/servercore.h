@@ -35,11 +35,13 @@ public:
 
     QJsonArray getChatUserList(const QString &chatName);
 
-    QJsonArray getMessage(const QString &chatName, const int latestMessageID);
+    QJsonArray getMessage(const QString &chatName, const int latestMessageID, const QString &lastTime);
 
     bool sendMessage(const QString &chatName, const QString &senderName, const QString &message);
 
     bool synchronizationRemind(const QString &chatName, const QString &senderName);
+
+    void processReadMessage(QTcpSocket *socket, const QString &message);
 
 private slots:
     void onReceiveMessage(QTcpSocket *socket, const QString &message);
