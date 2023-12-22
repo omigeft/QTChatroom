@@ -21,14 +21,16 @@ SOURCES += \
     clientcore.cpp \
     loginwindow.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    messagebox.cpp
 
 HEADERS += \
     chat.h \
     chatlist.h \
     clientcore.h \
     loginwindow.h \
-    mainwindow.h
+    mainwindow.h \
+    messagebox.h
 
 FORMS += \
     chat.ui \

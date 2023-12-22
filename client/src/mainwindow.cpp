@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "loginwindow.h"
+#include "messagebox.h"
 #include <QMouseEvent>
 #include <QGraphicsDropShadowEffect>
 MainWindow::MainWindow(QWidget *parent)
@@ -42,6 +43,9 @@ void MainWindow::on_ConnectButton_clicked()
         LoginWindow * loginwindow = new LoginWindow();
         this->close();
         loginwindow->show();
+    } else {
+        // 弹窗错误
+        MessageBox::warning(this, "错误", "连接失败");
     }
 }
 void MainWindow::mousePressEvent(QMouseEvent * event)
