@@ -3,6 +3,8 @@
 ## 简介
 本项目是一个用QT实现的桌面端自部署聊天室系统软件，含服务端和客户端，使用TCP通信和SQLite数据库管理系统。
 
+软件作者：@123duduke （数据库设计），@Futurow （UI设计），@omigeft （后端开发）
+
 #### 运行方法
 
 使用QT编译即可运行。作者测试时使用Qt5.12.9的MinGW64bit编译。
@@ -21,42 +23,42 @@
 
 #### 软件UI各界面介绍
 
-![UIIntroduction](https://github.com/omigeft/QTChatroom/tree/master/assets/UIIntroduction.png)
+![UIIntroduction](assets/UIIntroduction.png)
 
 #### ER图
 
-![ERDiagram](https://github.com/omigeft/QTChatroom/tree/master/assets/ERDiagram.png)
+![ERDiagram](assets/ERDiagram.png)
 
 #### 网络通信示意图
 
-![network](https://github.com/omigeft/QTChatroom/tree/master/assets/network.png)
+![network](assets/network.png)
 
 #### 服务端用户逻辑
 
-![server](https://github.com/omigeft/QTChatroom/tree/master/assets/server.png)
+![server](assets/server.png)
 
 #### 客户端用户逻辑
 
-![cilent](https://github.com/omigeft/QTChatroom/tree/master/assets/client.png)
+![cilent](assets/client.png)
 
 #### 服务端界面截图
 
-![serverWidget](https://github.com/omigeft/QTChatroom/tree/master/assets/serverWidget.png)
+![serverWidget](assets/serverWidget.png)
 
-![serverAdminmanagement1](https://github.com/omigeft/QTChatroom/tree/master/assets/serverAdminmanagement1.png)
+![serverAdminmanagement1](assets/serverAdminmanagement1.png)
 
-![serverAdminmanagement2](https://github.com/omigeft/QTChatroom/tree/master/assets/serverAdminmanagement2.png)
+![serverAdminmanagement2](assets/serverAdminmanagement2.png)
 
-![serverUsermanage](https://github.com/omigeft/QTChatroom/tree/master/assets/serverUsermanage.png)
+![serverUsermanage](assets/serverUsermanage.png)
 
-![serverMessagemanage](https://github.com/omigeft/QTChatroom/tree/master/assets/serverMessagemanage.png)
+![serverMessagemanage](assets/serverMessagemanage.png)
 
 #### 客户端界面截图
 
-![clientMainwindow](https://github.com/omigeft/QTChatroom/tree/master/assets/clientMainwindow.png)
+![clientMainwindow](assets/clientMainwindow.png)
 
-![cilentLoginwindow](https://github.com/omigeft/QTChatroom/tree/master/assets/clientLoginwindow.png)
+![cilentLoginwindow](assets/clientLoginwindow.png)
 
-![cilentChatlist](https://github.com/omigeft/QTChatroom/tree/master/assets/cilentChatlist.png)
+![cilentChatlist](assets/cilentChatlist.png)
 
-![cilentChat](https://github.com/omigeft/QTChatroom/tree/master/assets/cilentChat.png)
+![cilentChat](assets/cilentChat.png)
