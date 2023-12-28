@@ -3,7 +3,7 @@
 ## 简介
 本项目是一个用QT实现的桌面端自部署聊天室系统软件，含服务端和客户端，使用TCP通信和SQLite数据库管理系统。
 
-软件作者：@123duduke （数据库设计），@Futurow （UI设计），@omigeft （后端开发）
+软件作者：[@123duduke](https://github.com/123duduke) （数据库设计），[@zzqtala](https://github.com/zzqtala) （UI设计），[@omigeft](https://github.com/omigeft) （后端开发）
 
 #### 运行方法
 
