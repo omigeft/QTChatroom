@@ -59,6 +59,6 @@
 
 ![cilentLoginwindow](assets/clientLoginwindow.png)
 
-![cilentChatlist](assets/cilentChatlist.png)
+![cilentChatlist](assets/clientChatlist.png)
 
-![cilentChat](assets/cilentChat.png)
+![cilentChat](assets/clientChat.png)
