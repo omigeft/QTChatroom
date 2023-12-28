@@ -1,39 +1,62 @@
-# dblab
+# QTChatroom
 
-#### 介绍
-{**以下是 Gitee 平台说明，您可以替换此简介**
-Gitee 是 OSCHINA 推出的基于 Git 的代码托管平台（同时支持 SVN）。专为开发者提供稳定、高效、安全的云端软件开发协作平台
-无论是个人、团队、或是企业，都能够用 Gitee 实现代码托管、项目管理、协作开发。企业项目请看 [https://gitee.com/enterprises](https://gitee.com/enterprises)}
+## 简介
+本项目是一个用QT实现的桌面端自部署聊天室系统软件，含服务端和客户端，使用TCP通信和SQLite数据库管理系统。
 
-#### 软件架构
-软件架构说明
+#### 运行方法
 
+使用QT编译即可运行。作者测试时使用Qt5.12.9的MinGW64bit编译。
 
-#### 安装教程
+#### 已实现的主要功能有
+1. 建立服务器
+2. 局域网通信
+3. 用户、聊天室管理，包括用户聊天室的创建和消息撤回等
+4. 客户端可以进行注册、登录、创建和加入聊天室以及文本聊天等操作
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+#### 一些待实现的功能
+1. 公网通信
+2. 通信加密
+3. 图片、文件传输等多媒体通信
+4. 支持多国语言
 
-#### 使用说明
+#### 软件UI各界面介绍
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+![UIIntroduction](https://github.com/omigeft/QTChatroom/tree/master/assets/UIIntroduction.png)
 
-#### 参与贡献
+#### ER图
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+![ERDiagram](https://github.com/omigeft/QTChatroom/tree/master/assets/ERDiagram.png)
 
+#### 网络通信示意图
 
-#### 特技
+![network](https://github.com/omigeft/QTChatroom/tree/master/assets/network.png)
 
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+#### 服务端用户逻辑
+
+![server](https://github.com/omigeft/QTChatroom/tree/master/assets/server.png)
+
+#### 客户端用户逻辑
+
+![cilent](https://github.com/omigeft/QTChatroom/tree/master/assets/client.png)
+
+#### 服务端界面截图
+
+![serverWidget](https://github.com/omigeft/QTChatroom/tree/master/assets/serverWidget.png)
+
+![serverAdminmanagement1](https://github.com/omigeft/QTChatroom/tree/master/assets/serverAdminmanagement1.png)
+
+![serverAdminmanagement2](https://github.com/omigeft/QTChatroom/tree/master/assets/serverAdminmanagement2.png)
+
+![serverUsermanage](https://github.com/omigeft/QTChatroom/tree/master/assets/serverUsermanage.png)
+
+![serverMessagemanage](https://github.com/omigeft/QTChatroom/tree/master/assets/serverMessagemanage.png)
+
+#### 客户端界面截图
+
+![clientMainwindow](https://github.com/omigeft/QTChatroom/tree/master/assets/clientMainwindow.png)
+
+![cilentLoginwindow](https://github.com/omigeft/QTChatroom/tree/master/assets/clientLoginwindow.png)
+
+![cilentChatlist](https://github.com/omigeft/QTChatroom/tree/master/assets/cilentChatlist.png)
+
+![cilentChat](https://github.com/omigeft/QTChatroom/tree/master/assets/cilentChat.png)
