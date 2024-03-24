@@ -14,10 +14,12 @@ bool ClientCore::connectServer(const QHostAddress &address, const quint16 &port)
     serverPort = port;
 
     // 连接到服务端
-    socket.connectToHost(serverAddress, serverPort);
+//    socket.connectToHost(serverAddress.toString(), serverPort);
+    socket.connectToHostEncrypted(serverAddress.toString(), serverPort);
 
     // 检查连接是否成功
-    if(socket.waitForConnected(3000)) {
+//    if(socket.waitForConnected(3000)) {
+    if(socket.waitForEncrypted(3000)) {
         qDebug() << "连接成功！";
 
         // 测试发送数据
@@ -475,9 +477,21 @@ void ClientCore::onReadyRead() {
     }
 }
 
+void ClientCore::onSslErrors(const QList<QSslError> &errors) {
+    for (const QSslError &error : errors) {
+        if (error.error() == QSslError::SelfSignedCertificate) {
+            socket.ignoreSslErrors();
+        }
+    }
+}
+
 ClientCore::ClientCore() {
     // 收到服务器消息的信号槽连接
-    connect(&socket, &QTcpSocket::readyRead, this, &ClientCore::onReadyRead);
+    connect(&socket, &QSslSocket::readyRead, this, &ClientCore::onReadyRead);
+
+    // 通过忽略特定的SSL错误来接受自签名证书
+    connect(&socket, static_cast<void (QSslSocket::*)(const QList<QSslError> &)>(&QSslSocket::sslErrors),
+            this, &ClientCore::onSslErrors);
 }
 
 bool ClientCore::checkMessage(const QString &message, const QString &type, const QString &state) {

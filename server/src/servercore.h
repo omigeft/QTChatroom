@@ -4,6 +4,8 @@
 #include <QtNetwork>
 #include <QtSql>
 #include <QTableView>
+#include <QFileInfo>
+
 #include "server.h"
 
 class ServerCore : public QObject
@@ -19,11 +21,13 @@ public:
 public:
     bool createServer(const QHostAddress &address, quint16 port, const QString &rootUserName, const QString &password);
 
+    bool generateCertAndKey(const QString &certPath, const QString &keyPath);
+
     bool createDatabase(const QString &rootUserName, const QString &password);
 
     bool registerAccount(const QString &userName, const QString &password, const QString &role);
 
-    bool loginAccount(QTcpSocket *socket, const QString &userName, const QString &password);
+    bool loginAccount(QSslSocket *socket, const QString &userName, const QString &password);
 
     bool createChatroom(const QString &chatroomName, const QString &userName);
 
@@ -41,10 +45,10 @@ public:
 
     bool synchronizationRemind(const QString &chatName, const QString &senderName);
 
-    void processReadMessage(QTcpSocket *socket, const QString &message);
+    void processReadMessage(QSslSocket *socket, const QString &message);
 
 private slots:
-    void onReceiveMessage(QTcpSocket *socket, const QString &message);
+    void onReceiveMessage(QSslSocket *socket, const QString &message);
 
 private:
     ServerCore(); // 私有构造函数，确保单例
@@ -53,7 +57,7 @@ private:
 
     QJsonObject baseJsonObj(const QString &type, const QString &state);
 
-    void sendJsonObj(QTcpSocket *socket, const QJsonObject &jsonObj);
+    void sendJsonObj(QSslSocket *socket, const QJsonObject &jsonObj);
 
 public:
     Server server;                  // 服务器
@@ -67,7 +71,7 @@ public:
     int adminUserID;                // 目前登录服务器的管理员用户ID
     QString adminUserName;          // 目前登录服务器的管理员用户名
 
-    QMap<QString, QTcpSocket*> userSocketMap; // 用户名与socket的映射
+    QMap<QString, QSslSocket*> userSocketMap; // 用户名与socket的映射
 
     int maxUserNumber;              // 用于计数累计用户数量，从而确定新建u_id
     int maxChatroomNumber;          // 用于计数累计聊天室数量，从而确定新建c_id

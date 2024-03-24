@@ -46,6 +46,8 @@ signals:
 private slots:
     void onReadyRead();
 
+    void onSslErrors(const QList<QSslError> &errors);
+
 private:
     ClientCore(); // 私有构造函数，确保单例
 
@@ -58,7 +60,7 @@ private:
     bool sendAndWait(QString &response, const QJsonObject &jsonObj);
 
 public:
-    QTcpSocket socket;          // 套接字
+    QSslSocket socket;          // 套接字
     QHostAddress serverAddress; // 服务器IP地址
     quint16 serverPort;         // 服务器端口
 

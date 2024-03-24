@@ -3,7 +3,7 @@
 Server::Server(QObject *parent)
     : QTcpServer(parent) {}
 
-void Server::sendMessage(QTcpSocket *socket, const QString &message) {
+void Server::sendMessage(QSslSocket *socket, const QString &message) {
     QByteArray data = message.toUtf8();
     mutex.lock();
     socket->write(data);
@@ -11,16 +11,42 @@ void Server::sendMessage(QTcpSocket *socket, const QString &message) {
     mutex.unlock();
 }
 
+bool Server::loadServerCertificates(const QString &certPath, const QString &keyPath) {
+    QFile certFile(certPath);
+    QFile keyFile(keyPath);
+
+    if (!certFile.open(QIODevice::ReadOnly) || !keyFile.open(QIODevice::ReadOnly)) {
+        qWarning() << "无法打开证书或密钥文件";
+        return false;
+    }
+
+    QSslCertificate certificate(&certFile, QSsl::Pem);
+    QSslKey privateKey(&keyFile, QSsl::Rsa, QSsl::Pem);
+
+    if (certificate.isNull() || privateKey.isNull()) {
+        qWarning() << "无法加载证书或密钥";
+        return false;
+    }
+
+    sslCertificate = certificate;
+    sslPrivateKey = privateKey;
+
+    return true;
+}
+
 void Server::incomingConnection(qintptr socketDescriptor)
 {
-    // 创建一个新的TcpSocket来处理连接
-    QTcpSocket *clientSocket = new QTcpSocket(this);
+    // 创建一个新的SslSocket来处理连接
+    QSslSocket *clientSocket = new QSslSocket(this);
     if (clientSocket->setSocketDescriptor(socketDescriptor))
     {
-        this->addPendingConnection(clientSocket);
-        connect(clientSocket, &QTcpSocket::readyRead, this, &Server::onReadyRead);
-        connect(clientSocket, &QTcpSocket::bytesWritten, this, &Server::onBytesWritten);
-        connect(clientSocket, &QTcpSocket::disconnected, clientSocket, &QTcpSocket::deleteLater);
+        addPendingConnection(clientSocket);
+        clientSocket->setLocalCertificate(sslCertificate);
+        clientSocket->setPrivateKey(sslPrivateKey);
+        connect(clientSocket, &QSslSocket::readyRead, this, &Server::onReadyRead);
+        connect(clientSocket, &QSslSocket::bytesWritten, this, &Server::onBytesWritten);
+        connect(clientSocket, &QSslSocket::disconnected, clientSocket, &QSslSocket::deleteLater);
+        clientSocket->startServerEncryption();
     }
     else
     {
@@ -30,7 +56,7 @@ void Server::incomingConnection(qintptr socketDescriptor)
 
 void Server::onReadyRead()
 {
-    QTcpSocket *clientSocket = qobject_cast<QTcpSocket *>(sender());
+    QSslSocket *clientSocket = qobject_cast<QSslSocket *>(sender());
     if (clientSocket && clientSocket->bytesAvailable())
     {
         QByteArray data = clientSocket->readAll();
@@ -42,6 +68,7 @@ void Server::onReadyRead()
 
 void Server::onBytesWritten(qint64 bytes)
 {
-    QTcpSocket *clientSocket = qobject_cast<QTcpSocket *>(sender());
+//    QSslSocket *clientSocket = qobject_cast<QSslSocket *>(sender());
     qDebug() << "发送数据:" << bytes << "字节";
 }
+

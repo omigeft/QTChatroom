@@ -3,6 +3,8 @@
 
 #include <QtNetwork>
 #include <QMutex>
+#include <QSslCertificate>
+#include <QSslKey>
 
 class Server : public QTcpServer
 {
@@ -11,7 +13,9 @@ class Server : public QTcpServer
 public:
     Server(QObject *parent = nullptr);
 
-    void sendMessage(QTcpSocket *socket, const QString &message);
+    void sendMessage(QSslSocket *socket, const QString &message);
+
+    bool loadServerCertificates(const QString &certPath, const QString &keyPath);
 
 protected:
     void incomingConnection(qintptr socketDescriptor) override;
@@ -22,10 +26,12 @@ private slots:
     void onBytesWritten(qint64 bytes);
 
 signals:
-    void receiveMessage(QTcpSocket *socket, const QString &message);
+    void receiveMessage(QSslSocket *socket, const QString &message);
 
 private:
     QMutex mutex;
+    QSslCertificate sslCertificate;
+    QSslKey sslPrivateKey;
 };
 
 #endif // SERVER_H

@@ -1,6 +1,21 @@
 #include "servercore.h"
 
 bool ServerCore::createServer(const QHostAddress &address, quint16 port, const QString &rootUserName, const QString &password) {
+    // 获取当前工作目录
+    QString currentDir = QDir::currentPath();
+    QString certPath = currentDir + QDir::separator() + "serverCert.pem";
+    QString keyPath = currentDir + QDir::separator() + "serverKey.pem";
+
+    if (!generateCertAndKey(certPath, keyPath)) {
+        qDebug() << "Failed to set SSL certificate and key!";
+        return false;
+    }
+
+    if (!server.loadServerCertificates(certPath, keyPath)) {
+        qDebug() << "Failed to load SSL certificate and key!";
+        return false;
+    }
+
     if (!createDatabase(rootUserName, password)) {
         qDebug() << "Database connection failed!";
         return false;
@@ -22,6 +37,48 @@ bool ServerCore::createServer(const QHostAddress &address, quint16 port, const Q
     qDebug() << "Server listen on " << serverAddress.toString() << ":" << serverPort;
 
     return true;
+}
+
+bool ServerCore::generateCertAndKey(const QString &certPath, const QString &keyPath) {
+    QFileInfo certFileInfo(certPath);
+    QFileInfo keyFileInfo(keyPath);
+
+    // 检查证书和密钥文件是否都存在，不存在则生成
+    if (!(certFileInfo.exists() && keyFileInfo.exists())) {
+        // Python 脚本的路径
+        QString scriptResourcePath = ":/scripts/generatecertandkey.py";
+
+        // 读取资源中的脚本内容
+        QFile scriptFile(scriptResourcePath);
+        if (!scriptFile.open(QIODevice::ReadOnly))
+            return false;
+
+        QTextStream in(&scriptFile);
+        QString scriptContent = in.readAll();
+        scriptFile.close();
+
+        // 创建临时文件
+        QTemporaryFile tempFile;
+        if (!tempFile.open())
+            return false;
+
+        // 写入脚本内容到临时文件
+        QTextStream out(&tempFile);
+        out << scriptContent;
+        tempFile.close();
+
+        // 创建 QProcess 实例
+        QProcess *process = new QProcess;
+
+        // 启动 Python 解释器执行临时脚本文件
+        process->start("python", QStringList() << tempFile.fileName());
+
+        // 等待执行完成，或设置一个超时
+        if (!process->waitForFinished(3000)) return false;
+    }
+
+    return certFileInfo.isFile() && certFileInfo.isReadable() &&
+           keyFileInfo.isFile() && keyFileInfo.isReadable();
 }
 
 bool ServerCore::createDatabase(const QString &rootUserName, const QString &password) {
@@ -333,7 +390,7 @@ bool ServerCore::registerAccount(const QString &userName, const QString &passwor
     return true;
 }
 
-bool ServerCore::loginAccount(QTcpSocket *socket, const QString &userName, const QString &password) {
+bool ServerCore::loginAccount(QSslSocket *socket, const QString &userName, const QString &password) {
     QSqlQuery query;
 
     // 检查用户名是否已存在
@@ -672,7 +729,7 @@ bool ServerCore::synchronizationRemind(const QString &chatName, const QString &s
     return true;
 }
 
-void ServerCore::processReadMessage(QTcpSocket *socket, const QString &message) {
+void ServerCore::processReadMessage(QSslSocket *socket, const QString &message) {
     // 解析JSON字符串
     QJsonDocument jsonDoc = QJsonDocument::fromJson(message.toUtf8());
 
@@ -843,7 +900,7 @@ void ServerCore::processReadMessage(QTcpSocket *socket, const QString &message) 
     }
 }
 
-void ServerCore::onReceiveMessage(QTcpSocket *socket, const QString &message) {
+void ServerCore::onReceiveMessage(QSslSocket *socket, const QString &message) {
     // 如果包含多个报文，需要分割
     QStringList messageList = message.split("}{");
 
@@ -887,7 +944,7 @@ QJsonObject ServerCore::baseJsonObj(const QString &type, const QString &state) {
     return jsonObj;
 }
 
-void ServerCore::sendJsonObj(QTcpSocket *socket, const QJsonObject &jsonObj) {
+void ServerCore::sendJsonObj(QSslSocket *socket, const QJsonObject &jsonObj) {
     // 使用 QJsonDocument 生成 JSON 字符串，并发送报文
     QJsonDocument jsonDoc(jsonObj);
     QString message = jsonDoc.toJson(QJsonDocument::Compact);

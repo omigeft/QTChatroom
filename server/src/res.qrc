@@ -2,4 +2,7 @@
     <qresource prefix="/icon">
         <file>manage.ico</file>
     </qresource>
+    <qresource prefix="/scripts">
+        <file>generatecertandkey.py</file>
+    </qresource>
 </RCC>
